@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({Key? key}) : super(key: key);
+import '/screens/signup_screen.dart';
 
+class LoginScreen extends StatefulWidget {
+  static const routeName = '/login';
+  const LoginScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
+
+  var _isLoading = false;
+
+  void _submit() {}
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +36,7 @@ class LoginScreen extends StatelessWidget {
                 child: CircleAvatar(
                   child: Icon(
                     Icons.person_outline_outlined,
-                    color: Theme.of(context).accentColor,
+                    color: Theme.of(context).colorScheme.secondary,
                     size: 80,
                   ),
                 ),
@@ -58,14 +70,17 @@ class LoginScreen extends StatelessWidget {
                         const SizedBox(
                           width: 20,
                         ),
-                        _submitButton(),
+                        _submitButton(_isLoading, _submit),
                       ],
                     ),
                   ],
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushReplacementNamed(SignupScreen.routeName);
+                },
                 child: const Text(
                   'צור חשבון משתמש חדש',
                   style: TextStyle(
@@ -93,7 +108,13 @@ Widget _emailInput() {
     ),
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
-      decoration: const InputDecoration(labelText: 'אימייל'),
+      decoration: const InputDecoration(
+        labelText: 'אימייל',
+        suffixIcon: Icon(
+          Icons.email_outlined,
+          color: Colors.indigo,
+        ),
+      ),
     ),
   );
 }
@@ -110,21 +131,44 @@ Widget _passwordInput() {
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
       obscureText: true,
-      decoration: const InputDecoration(labelText: 'סיסמא'),
+      decoration: const InputDecoration(
+        labelText: 'סיסמא',
+        suffixIcon: Icon(
+          Icons.vpn_key_outlined,
+          color: Colors.indigo,
+        ),
+      ),
     ),
   );
 }
 
-Widget _submitButton() {
+Widget _submitButton(_isLoading, _submit) {
   return Expanded(
     child: ElevatedButton(
-      onPressed: () {},
-      child: const Text(
-        'התחבר',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
+      onPressed: _isLoading ? null : () => _submit(),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'התחבר',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (_isLoading)
+            const SizedBox(
+              width: 20,
+            ),
+          if (_isLoading)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Colors.indigo,
+              ),
+            )
+        ],
       ),
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(Colors.redAccent),
