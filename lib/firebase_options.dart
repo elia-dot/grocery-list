@@ -43,6 +43,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '113113919660',
     projectId: 'grocery-list-0',
     authDomain: 'grocery-list-0.firebaseapp.com',
+    databaseURL: 'https://grocery-list-0-default-rtdb.firebaseio.com',
     storageBucket: 'grocery-list-0.appspot.com',
     measurementId: 'G-DEYJYZBTWC',
   );
@@ -52,6 +53,7 @@ class DefaultFirebaseOptions {
     appId: '1:113113919660:android:f51ee49e74336c920e6f09',
     messagingSenderId: '113113919660',
     projectId: 'grocery-list-0',
+    databaseURL: 'https://grocery-list-0-default-rtdb.firebaseio.com',
     storageBucket: 'grocery-list-0.appspot.com',
   );
 
@@ -60,6 +62,7 @@ class DefaultFirebaseOptions {
     appId: '1:113113919660:ios:da1b1c530653b7f00e6f09',
     messagingSenderId: '113113919660',
     projectId: 'grocery-list-0',
+    databaseURL: 'https://grocery-list-0-default-rtdb.firebaseio.com',
     storageBucket: 'grocery-list-0.appspot.com',
     iosClientId: '113113919660-1mu35j6pndmm4avf2ivgp387kq25linr.apps.googleusercontent.com',
     iosBundleId: 'com.grocerylist.app',

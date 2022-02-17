@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_list/models/fb_exeption.dart';
 import 'package:grocery_list/providers/auth.dart';
 import 'package:provider/provider.dart';
 
@@ -24,6 +25,65 @@ class _SignupScreenState extends State<SignupScreen> {
   var _isLoading = false;
   final _passwordController = TextEditingController();
 
+  var _isEmailError = false;
+  var _isPasswordError = false;
+  var _isConfirmError = false;
+
+  final FocusNode _emailNode = FocusNode();
+  final FocusNode _passwordNode = FocusNode();
+  final FocusNode _confirmNode = FocusNode();
+
+  var emailError = "";
+
+  void throwEmailError() {
+    setState(() {
+      _isEmailError = true;
+    });
+  }
+
+  void throwPasswordError() {
+    setState(() {
+      _isPasswordError = true;
+    });
+  }
+
+  void throwConfirmError() {
+    setState(() {
+      _isConfirmError = true;
+    });
+  }
+
+  void removeErrors() {
+    setState(() {
+      _isConfirmError = false;
+      _isEmailError = false;
+      _isPasswordError = false;
+      emailError = '';
+    });
+  }
+
+  @override
+  void initState() {
+    _emailNode.addListener(() {
+      if (_emailNode.hasFocus) {
+        removeErrors();
+      }
+    });
+
+    _passwordNode.addListener(() {
+      if (_passwordNode.hasFocus) {
+        removeErrors();
+      }
+    });
+
+    _confirmNode.addListener(() {
+      if (_confirmNode.hasFocus) {
+        removeErrors();
+      }
+    });
+    super.initState();
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -38,6 +98,10 @@ class _SignupScreenState extends State<SignupScreen> {
         formData['email']!,
         formData['password']!,
       );
+    } on FBExeption catch (msg) {
+      setState(() {
+        emailError = msg.toString();
+      });
     } catch (e) {
       print(e);
     }
@@ -83,15 +147,34 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(
                         height: 30,
                       ),
-                      _emailInput(formData),
+                      _emailInput(
+                        formData,
+                        _emailNode,
+                        _isEmailError,
+                        throwEmailError,
+                        emailError,
+                      ),
                       const SizedBox(
                         height: 30,
                       ),
-                      _passwordInput(formData, _passwordController),
+                      _passwordInput(
+                        formData,
+                        _passwordNode,
+                        _passwordController,
+                        _isPasswordError,
+                        _isConfirmError,
+                        throwPasswordError,
+                      ),
                       const SizedBox(
                         height: 30,
                       ),
-                      _confirmPasswordInput(_passwordController),
+                      _confirmPasswordInput(
+                        _confirmNode,
+                        _passwordController,
+                        _isConfirmError,
+                        throwPasswordError,
+                        throwConfirmError,
+                      ),
                       const SizedBox(
                         height: 30,
                       ),
@@ -152,7 +235,13 @@ Widget _userInput(formData) {
   );
 }
 
-Widget _emailInput(formData) {
+Widget _emailInput(
+  formData,
+  emailNode,
+  isEmailError,
+  throwEmailError,
+  emailError,
+) {
   return Container(
     padding: const EdgeInsets.symmetric(
       horizontal: 10,
@@ -163,15 +252,18 @@ Widget _emailInput(formData) {
     ),
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
-      decoration: const InputDecoration(
+      focusNode: emailNode,
+      decoration: InputDecoration(
         labelText: 'אימייל',
+        errorText: emailError != "" ? emailError : null,
         suffixIcon: Icon(
           Icons.email_outlined,
-          color: Colors.indigo,
+          color: isEmailError ? Colors.red : Colors.indigo,
         ),
       ),
       validator: (value) {
         if (value!.isEmpty || !value.contains('@')) {
+          throwEmailError();
           return 'אימייל לא תקין';
         }
         return null;
@@ -183,7 +275,14 @@ Widget _emailInput(formData) {
   );
 }
 
-Widget _passwordInput(formData, _passwordController) {
+Widget _passwordInput(
+  formData,
+  passwordNode,
+  _passwordController,
+  isPasswordError,
+  isConfirmError,
+  throwPasswordError,
+) {
   return Container(
     padding: const EdgeInsets.symmetric(
       horizontal: 10,
@@ -195,16 +294,18 @@ Widget _passwordInput(formData, _passwordController) {
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
       obscureText: true,
-      decoration: const InputDecoration(
+      focusNode: passwordNode,
+      decoration: InputDecoration(
         labelText: 'סיסמא',
         suffixIcon: Icon(
           Icons.vpn_key_outlined,
-          color: Colors.indigo,
+          color: isPasswordError || isConfirmError ? Colors.red : Colors.indigo,
         ),
       ),
       controller: _passwordController,
       validator: (value) {
         if (value!.isEmpty || value.length < 6) {
+          throwPasswordError();
           return 'נא הכנב סיסמא עם לפחות 6 תווים';
         }
         return null;
@@ -216,7 +317,13 @@ Widget _passwordInput(formData, _passwordController) {
   );
 }
 
-Widget _confirmPasswordInput(_passwordController) {
+Widget _confirmPasswordInput(
+  confirmNode,
+  _passwordController,
+  isConfirmError,
+  throwPasswordError,
+  throwConfirmError,
+) {
   return Container(
     padding: const EdgeInsets.symmetric(
       horizontal: 10,
@@ -228,15 +335,18 @@ Widget _confirmPasswordInput(_passwordController) {
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
       obscureText: true,
-      decoration: const InputDecoration(
+      focusNode: confirmNode,
+      decoration: InputDecoration(
         labelText: 'אשר סיסמא',
         suffixIcon: Icon(
           Icons.vpn_key_outlined,
-          color: Colors.indigo,
+          color: isConfirmError ? Colors.red : Colors.indigo,
         ),
       ),
       validator: (value) {
         if (value! != _passwordController.text) {
+          throwConfirmError();
+          throwPasswordError();
           return 'סיסמאות לא תואמות';
         }
         return null;
