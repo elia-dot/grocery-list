@@ -208,9 +208,11 @@ Widget _emailInput(
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
       focusNode: _emailNode,
+      style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         labelText: 'אימייל',
         errorText: emailError != "" ? emailError : null,
+        
         suffixIcon: Icon(
           Icons.email_outlined,
           color: _isEmailError ? Colors.red : Colors.indigo,
@@ -247,6 +249,7 @@ Widget _passwordInput(
     ),
     child: TextFormField(
       keyboardType: TextInputType.emailAddress,
+      style: const TextStyle(color: Colors.black),
       obscureText: true,
       decoration: InputDecoration(
         labelText: 'סיסמא',

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:grocery_list/providers/product.dart';
 import 'package:provider/provider.dart';
 
+import '/screens/list_products.dart';
 import '/providers/list.dart';
 import '/providers/lists.dart';
 
@@ -14,12 +16,13 @@ class ListsScreen extends StatefulWidget {
 
 class _ListsScreenState extends State<ListsScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
-  Map<String, String> listData = {
+  Map<String, dynamic> listData = {
     'name': '',
     'description': '',
-    'createdBy': '',
+    'createdBy': {},
     'updatedAt': '',
-    'createdAt': ''
+    'createdAt': '',
+    'items': {'completed': false, 'itemsList': <Product>[]},
   };
   var _isLoading = false;
 
@@ -28,7 +31,10 @@ class _ListsScreenState extends State<ListsScreen> {
     setState(() {
       _isLoading = true;
     });
-    listData['createdBy'] = auth.currentUser!.uid;
+    listData['createdBy'] = {
+      'id': auth.currentUser!.uid,
+      'name': auth.currentUser!.displayName,
+    };
     listData['createdAt'] = DateTime.now().toString();
     listData['updatedAt'] = DateTime.now().toString();
 
@@ -46,6 +52,34 @@ class _ListsScreenState extends State<ListsScreen> {
     super.initState();
   }
 
+  int countItems(items) {
+    if (items == null) return 0;
+    int count = 0;
+    for (int i = 0; i < items.length; i++) {
+      if (items[i].completed) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  double dividerWidth(int total, int completed) {
+    if (total == 0 && completed == 0) return 0;
+    var presentage = completed / total;
+    return MediaQuery.of(context).size.width / presentage * 100;
+  }
+
+  void showList(String listId) {
+    
+    showGeneralDialog(
+        context: context,
+        pageBuilder: (_, __, ___) {
+          return ListProducts(
+            listId: listId,
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -61,10 +95,57 @@ class _ListsScreenState extends State<ListsScreen> {
             textAlign: TextAlign.center,
           ),
         ),
+        const SizedBox(
+          height: 30,
+        ),
         Expanded(
           child: ListView.builder(
+            shrinkWrap: true,
             itemBuilder: (ctx, i) {
-              return Text(lists[i].name);
+              String listCreator =
+                  lists[i].createdBy['id'] == auth.currentUser!.uid
+                      ? 'נוצר על ידך'
+                      : 'נוצר על ידי ${lists[i].createdBy['name']}';
+              int totalItems = (lists[i].items['products'] != null
+                  ? lists[i].items['products'].length
+                  : 0);
+              int completedItems = countItems(lists[i].items['products']);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      showList(lists[i].id);
+                    },
+                    child: ListTile(
+                      tileColor: Colors.black26,
+                      title: Text(
+                        lists[i].name,
+                      ),
+                      subtitle: Text(listCreator),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('$completedItems/$totalItems'),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                            size: 15,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: dividerWidth(totalItems, completedItems),
+                    height: 5,
+                    color: Colors.green,
+                  )
+                ],
+              );
             },
             itemCount: lists.length,
           ),

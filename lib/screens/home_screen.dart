@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_list/screens/lists.dart';
 import 'package:grocery_list/screens/profile.dart';
-import 'package:grocery_list/screens/recommendation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,10 +15,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screenOptions = [
-      Directionality(textDirection: TextDirection.rtl, child: Profile()),
-      Directionality(textDirection: TextDirection.rtl, child: ListsScreen()),
       const Directionality(
-          textDirection: TextDirection.rtl, child: Recommendations()),
+          textDirection: TextDirection.rtl, child: ListsScreen()),
+      Directionality(textDirection: TextDirection.rtl, child: Profile()),
     ];
     return Scaffold(
       appBar: AppBar(),
@@ -39,18 +37,13 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'פרופיל',
-            tooltip: '',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'רשימות קניה',
             tooltip: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.recommend),
-            label: 'המלצות',
+            icon: Icon(Icons.person),
+            label: 'פרופיל',
             tooltip: '',
           ),
         ],

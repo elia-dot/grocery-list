@@ -214,6 +214,7 @@ Widget _userInput(formData) {
       borderRadius: BorderRadius.circular(10),
     ),
     child: TextFormField(
+      style: const TextStyle(color: Colors.black),
       keyboardType: TextInputType.emailAddress,
       decoration: const InputDecoration(
         labelText: 'שם משתמש',
@@ -251,6 +252,7 @@ Widget _emailInput(
       borderRadius: BorderRadius.circular(10),
     ),
     child: TextFormField(
+      style: const TextStyle(color: Colors.black),
       keyboardType: TextInputType.emailAddress,
       focusNode: emailNode,
       decoration: InputDecoration(
@@ -292,6 +294,7 @@ Widget _passwordInput(
       borderRadius: BorderRadius.circular(10),
     ),
     child: TextFormField(
+      style: const TextStyle(color: Colors.black),
       keyboardType: TextInputType.emailAddress,
       obscureText: true,
       focusNode: passwordNode,
@@ -333,6 +336,7 @@ Widget _confirmPasswordInput(
       borderRadius: BorderRadius.circular(10),
     ),
     child: TextFormField(
+      style: const TextStyle(color: Colors.black),
       keyboardType: TextInputType.emailAddress,
       obscureText: true,
       focusNode: confirmNode,

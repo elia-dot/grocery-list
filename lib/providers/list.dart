@@ -6,7 +6,8 @@ class ShopingList with ChangeNotifier {
   String description;
   String createdAt;
   String updatedAt;
-  String createdBy;
+  Map<String, dynamic> createdBy;
+  Map items;
 
   ShopingList({
     required this.createdAt,
@@ -15,5 +16,6 @@ class ShopingList with ChangeNotifier {
     required this.name,
     required this.updatedAt,
     required this.createdBy,
+    required this.items,
   });
 }
