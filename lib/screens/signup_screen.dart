@@ -20,6 +20,7 @@ class _SignupScreenState extends State<SignupScreen> {
     "name": '',
     "email": '',
     "password": '',
+    "phone": ''
   };
 
   var _isLoading = false;
@@ -28,10 +29,12 @@ class _SignupScreenState extends State<SignupScreen> {
   var _isEmailError = false;
   var _isPasswordError = false;
   var _isConfirmError = false;
+  var _isPhoneError = false;
 
   final FocusNode _emailNode = FocusNode();
   final FocusNode _passwordNode = FocusNode();
   final FocusNode _confirmNode = FocusNode();
+  final FocusNode _phoneNode = FocusNode();
 
   var emailError = "";
 
@@ -53,12 +56,25 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
+  void throwPhoneError() {
+    setState(() {
+      _isPhoneError = true;
+    });
+  }
+
   void removeErrors() {
     setState(() {
       _isConfirmError = false;
       _isEmailError = false;
       _isPasswordError = false;
+      _isPhoneError = false;
       emailError = '';
+    });
+  }
+
+  void setPhone(value) {
+    setState(() {
+      formData['phone'] = value;
     });
   }
 
@@ -81,6 +97,12 @@ class _SignupScreenState extends State<SignupScreen> {
         removeErrors();
       }
     });
+
+    _phoneNode.addListener(() {
+      if (_phoneNode.hasFocus) {
+        removeErrors();
+      }
+    });
     super.initState();
   }
 
@@ -93,11 +115,8 @@ class _SignupScreenState extends State<SignupScreen> {
       _isLoading = true;
     });
     try {
-      await Provider.of<Auth>(context, listen: false).signup(
-        formData['name']!,
-        formData['email']!,
-        formData['password']!,
-      );
+      await Provider.of<Auth>(context, listen: false).signup(formData['name']!,
+          formData['email']!, formData['password']!, formData['phone']!);
     } on FBExeption catch (msg) {
       setState(() {
         emailError = msg.toString();
@@ -112,90 +131,103 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            width: 300,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  child: CircleAvatar(
-                    child: Icon(
-                      Icons.person_add_outlined,
-                      color: Theme.of(context).colorScheme.secondary,
-                      size: 80,
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0.0,
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              width: 300,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    child: CircleAvatar(
+                      child: Icon(
+                        Icons.person_add_outlined,
+                        color: Theme.of(context).colorScheme.secondary,
+                        size: 80,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _userInput(formData),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      _emailInput(
-                        formData,
-                        _emailNode,
-                        _isEmailError,
-                        throwEmailError,
-                        emailError,
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      _passwordInput(
-                        formData,
-                        _passwordNode,
-                        _passwordController,
-                        _isPasswordError,
-                        _isConfirmError,
-                        throwPasswordError,
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      _confirmPasswordInput(
-                        _confirmNode,
-                        _passwordController,
-                        _isConfirmError,
-                        throwPasswordError,
-                        throwConfirmError,
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      _submitButton(_isLoading, _submit),
-                    ],
+                  const SizedBox(
+                    height: 50,
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .pushReplacementNamed(LoginScreen.routeName);
-                  },
-                  child: const Text(
-                    'התחבר לחשבון שלך',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _userInput(formData),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        _emailInput(
+                          formData,
+                          _emailNode,
+                          _isEmailError,
+                          throwEmailError,
+                          emailError,
+                        ),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        _passwordInput(
+                          formData,
+                          _passwordNode,
+                          _passwordController,
+                          _isPasswordError,
+                          _isConfirmError,
+                          throwPasswordError,
+                        ),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        _confirmPasswordInput(
+                          _confirmNode,
+                          _passwordController,
+                          _isConfirmError,
+                          throwPasswordError,
+                          throwConfirmError,
+                        ),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        _phoneInput(
+                            formData, _isPhoneError, throwPhoneError, setPhone),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        _submitButton(_isLoading, _submit),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pushReplacementNamed(LoginScreen.routeName);
+                    },
+                    child: const Text(
+                      'התחבר לחשבון שלך',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -309,7 +341,7 @@ Widget _passwordInput(
       validator: (value) {
         if (value!.isEmpty || value.length < 6) {
           throwPasswordError();
-          return 'נא הכנב סיסמא עם לפחות 6 תווים';
+          return 'נא הכנס סיסמא עם לפחות 6 תווים';
         }
         return null;
       },
@@ -388,6 +420,50 @@ Widget _submitButton(bool _isLoading, Function _submit) {
     ),
     style: ButtonStyle(
       backgroundColor: MaterialStateProperty.all(Colors.redAccent),
+    ),
+  );
+}
+
+Widget _phoneInput(formData, isPhoneError, throwPhoneError, setPhone) {
+  return Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 10,
+    ),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: TextFormField(
+      style: const TextStyle(color: Colors.black),
+      keyboardType: TextInputType.number,
+      maxLength: 10,
+      decoration: InputDecoration(
+        counterText: "",
+        labelText: "מס' טלפון",
+        errorText: formData['phone'].contains('-') ||
+                formData['phone'].contains(',') ||
+                formData['phone'].contains('.')
+            ? 'נא הכנס מספרים בלבד'
+            : null,
+        suffixIcon: Icon(
+          Icons.phone,
+          color: isPhoneError ? Colors.red : Colors.indigo,
+        ),
+      ),
+      validator: (value) {
+        if (value!.isEmpty) {
+          throwPhoneError();
+          return 'הכנס מספר טלפון ואפשר לחבריך לשתף עמך רשימות';
+        }
+        if (value.contains('-') || value.contains(',') || value.contains('.')) {
+          throwPhoneError();
+          return 'נא הכנס מספרים בלבד';
+        }
+        return null;
+      },
+      onChanged: (value) {
+        setPhone(value);
+      },
     ),
   );
 }

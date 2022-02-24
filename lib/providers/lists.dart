@@ -19,7 +19,7 @@ class Lists with ChangeNotifier {
     notifyListeners();
   }
 
-  //set a listener in fire base
+  //set a listener in firebase
   void listsListener() {
     database.ref('lists').onValue.listen((event) {
       final data = event.snapshot.value;
@@ -35,13 +35,14 @@ class Lists with ChangeNotifier {
               products.forEach(
                 (prodId, prodData) {
                   Product product = Product(
-                    amount:prodData['amount'],
+                    amount: prodData['amount'],
                     id: prodId,
                     name: prodData['name'],
                     addedBy: {
                       'name': prodData['addedby']['name'],
                       'id': prodData['addedby']['id'],
                     },
+                    completed: prodData['completed'],
                   );
                   itemsList.add(product);
                 },
@@ -50,7 +51,6 @@ class Lists with ChangeNotifier {
 
             ShopingList newList = ShopingList(
               createdAt: listData['createdAt'],
-              description: listData['description'],
               id: listId,
               name: listData['name'],
               updatedAt: listData['updatedAt'],
@@ -88,12 +88,19 @@ class Lists with ChangeNotifier {
   }
 
   //add item to list
-
   Future<void> addItem(String listId, Map product) async {
     final newProductKey =
         database.ref().child('lists/$listId/items/products').push().key;
     database
         .ref('lists/$listId/items/products')
         .update({'$newProductKey': product});
+  }
+
+  //check uncheck item
+  Future<void> checkItem(String itemId, String listId, bool value) async {
+    print(value);
+    database
+        .ref('lists/$listId/items/products/$itemId')
+        .update({'completed': value});
   }
 }

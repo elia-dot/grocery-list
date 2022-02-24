@@ -67,7 +67,8 @@ class _ListProductsState extends State<ListProducts> {
 
   @override
   Widget build(BuildContext context) {
-    ShopingList list = Provider.of<Lists>(context).getList(widget.listId);
+    var listProvider = Provider.of<Lists>(context);
+    ShopingList list = listProvider.getList(widget.listId);
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -124,7 +125,7 @@ class _ListProductsState extends State<ListProducts> {
                                   color: Colors.white,
                                 ),
                               ),
-                              onChanged: (value) {
+                              onChanged: (String value) {
                                 setState(() {
                                   productData['name'] = value;
                                 });
@@ -136,7 +137,7 @@ class _ListProductsState extends State<ListProducts> {
                           ),
                           Flexible(
                             flex: 1,
-                            child: TextField(
+                            child: TextFormField(
                               controller: amountController,
                               decoration: const InputDecoration(
                                 labelText: 'כמות:',
@@ -201,7 +202,9 @@ class _ListProductsState extends State<ListProducts> {
                           backgroundColor: MaterialStateProperty.all(
                               Theme.of(context).colorScheme.secondary),
                         ),
-                        onPressed: _isLoading
+                        onPressed: _isLoading ||
+                                productData['name'] == '' ||
+                                productData['amount'] == ''
                             ? () {}
                             : () {
                                 add();
@@ -209,7 +212,8 @@ class _ListProductsState extends State<ListProducts> {
                         child: const Text('הוסף'),
                       ),
                       const Divider(
-                        color: Colors.black,
+                        color: Colors.grey,
+                        thickness: 1,
                       ),
                     ],
                   ),
@@ -224,11 +228,19 @@ class _ListProductsState extends State<ListProducts> {
                           child: ListView.builder(
                             shrinkWrap: true,
                             itemBuilder: (ctx, i) => ListTile(
-                              leading: Icon(
-                                Icons.check_circle_outline,
-                                color: list.items['products'][i].completed
-                                    ? Colors.green
-                                    : Colors.black,
+                              leading: GestureDetector(
+                                onTap: () {
+                                  listProvider.checkItem(
+                                      list.items['products'][i].id,
+                                      widget.listId,
+                                      !list.items['products'][i].completed);
+                                },
+                                child: Icon(
+                                  Icons.check_circle_outline,
+                                  color: list.items['products'][i].completed
+                                      ? Colors.green
+                                      : Colors.black,
+                                ),
                               ),
                               title: Text(list.items['products'][i].name),
                               trailing: Text(list.items['products'][i].amount),

@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => Auth(),
         ),
-         ChangeNotifierProvider(
+        ChangeNotifierProvider(
           create: (_) => Lists(),
         ),
       ],
@@ -66,6 +66,7 @@ class MyApp extends StatelessWidget {
                 backgroundColor: Colors.transparent,
                 elevation: 0,
               ),
+              cardColor: Colors.transparent,
               textTheme: Theme.of(context).textTheme.apply(
                     bodyColor: Colors.white,
                     displayColor: Colors.white,

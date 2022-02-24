@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 class ShopingList with ChangeNotifier {
   String id;
   String name;
-  String description;
   String createdAt;
   String updatedAt;
   Map<String, dynamic> createdBy;
@@ -11,7 +10,6 @@ class ShopingList with ChangeNotifier {
 
   ShopingList({
     required this.createdAt,
-    required this.description,
     required this.id,
     required this.name,
     required this.updatedAt,

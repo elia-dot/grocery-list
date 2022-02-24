@@ -1,14 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+import '/models/user.dart';
 import '/models/fb_exeption.dart';
 
 class Auth with ChangeNotifier {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseDatabase database = FirebaseDatabase.instance;
 
-  Future<void> signup(String name, String email, String password) async {
+  Future<void> signup(
+      String name, String email, String password, String phone) async {
     try {
       UserCredential user = await auth.createUserWithEmailAndPassword(
         email: email,
@@ -21,6 +25,12 @@ class Auth with ChangeNotifier {
       ref.set({
         'name': name,
         'email': user.user!.email,
+        'phone': phone,
+        'allowAdding': false,
+        'allowNotifications': {
+          'addedToList': true,
+          'itemAdded': true,
+        },
       });
       await auth.currentUser!.updateDisplayName(name);
       await auth.currentUser!.reload();
@@ -53,6 +63,46 @@ class Auth with ChangeNotifier {
     } catch (e) {
       print('error: $e');
       throw e;
+    }
+  }
+
+  Future<AppUser?> getUser(String id) async {
+    final res = await database.ref('users/$id').get();
+    if (res.exists) {
+      var user;
+      final fetchedUser = jsonEncode(res.value);
+      final decodedData = jsonDecode(fetchedUser) as Map<String, dynamic>;
+      user = AppUser(
+        email: decodedData['email'],
+        id: id,
+        name: decodedData['name'],
+        phone: decodedData['phone'],
+        allowAdding: decodedData['allowAdding'],
+        allowNotifications: decodedData['allowNotifications'],
+        friends: decodedData['friends'] ?? []
+      );
+
+      return user;
+    } else {
+      print('no Data');
+    }
+  }
+
+  Future<void> updateNotifications(String setting, bool value) async {
+    try {
+      database
+          .ref('users/${auth.currentUser!.uid}/allowNotifications')
+          .update({setting: value});
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> updateSettings(String setting, String value) async {
+    try {
+      database.ref('users/${auth.currentUser!.uid}').update({setting: value});
+    } catch (e) {
+      print(e);
     }
   }
 }
