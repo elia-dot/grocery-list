@@ -71,6 +71,7 @@ class MyApp extends StatelessWidget {
                     bodyColor: Colors.white,
                     displayColor: Colors.white,
                   ),
+                
             ),
             home: Directionality(
               textDirection: TextDirection.rtl,

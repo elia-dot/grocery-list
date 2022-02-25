@@ -1,3 +1,4 @@
+import 'package:avatars/avatars.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:grocery_list/models/user.dart';
@@ -28,6 +29,9 @@ class _ListsScreenState extends State<ListsScreen> {
   };
   var _isLoading = false;
   var _isExpanded = false;
+
+  String searchTerm = '';
+  var users = [];
 
   Future<void> submit() async {
     final listsProvider = Provider.of<Lists>(context, listen: false);
@@ -88,6 +92,107 @@ class _ListsScreenState extends State<ListsScreen> {
             listId: listId,
           );
         });
+  }
+
+  Widget usersSuggestion() {
+    print(users);
+    var authProvider = Provider.of<Auth>(context, listen: false);
+    var suggestions = authProvider.suggestionsList;
+    var res = Container(
+      constraints: const BoxConstraints(maxHeight: 400),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(8),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          hintText: "הכנס מס' טלפון או שם",
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                        ),
+                        onChanged: (value) {
+                          authProvider.searchUser(value);
+                        },
+                      ),
+                    ),
+                    const Icon(Icons.search),
+                  ],
+                ),
+              ),
+            ),
+            if (searchTerm == '' && authUser.friends.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (ctx, i) => InkWell(
+                  onTap: () {
+                    setState(() {
+                      users.add(authUser.friends[i]);
+                    });
+                  },
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(8),
+                    title: Text(authUser.friends[i]['name']),
+                    trailing: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: buildAvatar(authUser.friends[i]['name'], context),
+                    ),
+                  ),
+                ),
+                itemCount: authUser.friends.length,
+              ),
+            if (suggestions.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (ctx, i) => InkWell(
+                  onTap: () {
+                    setState(() {
+                      users.add(suggestions[i]);
+                    });
+                  },
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(8),
+                    title: Text(suggestions[i]['name']),
+                    trailing: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: buildAvatar(suggestions[i]['name'], context),
+                    ),
+                  ),
+                ),
+                itemCount: suggestions.length,
+              )
+          ],
+        ),
+      ),
+    );
+
+    return res;
+  }
+
+  List<Widget> participants() {
+    return users
+        .map(
+          (e) => SizedBox(
+            width: 40,
+            height: 40,
+            child: buildAvatar(e['name'], context),
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -169,147 +274,169 @@ class _ListsScreenState extends State<ListsScreen> {
                     context: context,
                     barrierLabel: 'add list',
                     pageBuilder: (_, __, ___) {
-                      return Scaffold(
-                        appBar: AppBar(
-                          backgroundColor: Theme.of(context).primaryColor,
-                        ),
-                        body: GestureDetector(
-                          onTap: () {
-                            FocusScopeNode currentFocus =
-                                FocusScope.of(context);
-                            if (!currentFocus.hasPrimaryFocus) {
-                              currentFocus.unfocus();
-                            }
-                          },
-                          child: Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: Container(
-                              color: Theme.of(context).primaryColor,
-                              height: size.height,
-                              child: SingleChildScrollView(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 50),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(26.0),
-                                        child: Text(
-                                          'רשימה חדשה',
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .secondary,
+                      return StatefulBuilder(
+                        builder: (context, setState) => Scaffold(
+                          appBar: AppBar(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          ),
+                          body: GestureDetector(
+                            onTap: () {
+                              FocusScopeNode currentFocus =
+                                  FocusScope.of(context);
+                              if (!currentFocus.hasPrimaryFocus) {
+                                currentFocus.unfocus();
+                              }
+                            },
+                            child: Directionality(
+                              textDirection: TextDirection.rtl,
+                              child: Container(
+                                color: Theme.of(context).primaryColor,
+                                height: size.height,
+                                child: SingleChildScrollView(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 50),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(26.0),
+                                          child: Text(
+                                            'רשימה חדשה',
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      TextField(
-                                        decoration: const InputDecoration(
-                                          labelText: 'שם:',
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
+                                        TextField(
+                                          decoration: const InputDecoration(
+                                            labelText: 'שם:',
+                                            enabledBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            focusedBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            labelStyle: TextStyle(
                                               color: Colors.white,
                                             ),
                                           ),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          labelStyle: TextStyle(
-                                            color: Colors.white,
-                                          ),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              listData['name'] = value;
+                                            });
+                                          },
                                         ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            listData['name'] = value;
-                                          });
-                                        },
-                                      ),
-                                      const SizedBox(
-                                        height: 30,
-                                      ),
-                                      ExpansionPanelList(
-                                        elevation: 0,
-                                        expansionCallback: (_, isExpanded) {
-                                          setState(() {
-                                            _isExpanded = !_isExpanded;
-                                          });
-                                        },
-                                        children: [
-                                          ExpansionPanel(
-                                            headerBuilder:
-                                                (context, isExpanded) {
-                                              return const Padding(
-                                                padding: EdgeInsets.all(12.0),
-                                                child: Text(
-                                                  'הוסף משתמשים',
-                                                  style:
-                                                      TextStyle(fontSize: 17),
-                                                ),
-                                              );
-                                            },
-                                            body: ListView.builder(
-                                              shrinkWrap: true,
-                                              itemCount:
-                                                  authUser.friends.length,
-                                              itemBuilder: (context, i) {
-                                                return ListTile(
-                                                  title: authUser.friends[i]
-                                                      ['name'],
-                                                );
-                                              },
-                                            ),
-                                            isExpanded: _isExpanded,
-                                            canTapOnHeader: true,
-                                          )
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        height: 30,
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          submit();
-                                        },
-                                        style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStateProperty.all(
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .secondary,
-                                          ),
+                                        const SizedBox(
+                                          height: 30,
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          mainAxisSize: MainAxisSize.min,
+                                        Stack(
                                           children: [
-                                            const Text(
-                                              'יצירת רשימה',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
+                                            SizedBox(
+                                              width: double.infinity,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text('משתתפים:'),
+                                                  const SizedBox(
+                                                    height: 10,
+                                                  ),
+                                                  Wrap(
+                                                    children: participants(),
+                                                  )
+                                                ],
                                               ),
                                             ),
-                                            const SizedBox(
-                                              width: 10,
+                                            ExpansionPanelList(
+                                              elevation: 0,
+                                              expansionCallback:
+                                                  (_, isExpanded) {
+                                                setState(() {
+                                                  _isExpanded = !_isExpanded;
+                                                });
+                                              },
+                                              children: [
+                                                ExpansionPanel(
+                                                  headerBuilder:
+                                                      (context, isExpanded) {
+                                                    return const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(12.0),
+                                                      child: Text(
+                                                        'הוסף',
+                                                        style: TextStyle(
+                                                            fontSize: 17),
+                                                      ),
+                                                    );
+                                                  },
+                                                  body: usersSuggestion(),
+                                                  isExpanded: _isExpanded,
+                                                  canTapOnHeader: true,
+                                                )
+                                              ],
                                             ),
-                                            if (_isLoading)
-                                              const SizedBox(
-                                                width: 20,
-                                                height: 20,
-                                                child:
-                                                    CircularProgressIndicator(),
+                                            Positioned(
+                                              bottom: 0,
+                                              child: Align(
+                                                alignment:
+                                                    AlignmentDirectional.center,
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    submit();
+                                                  },
+                                                  style: ButtonStyle(
+                                                    backgroundColor:
+                                                        MaterialStateProperty
+                                                            .all(
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary,
+                                                    ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Text(
+                                                        'יצירת רשימה',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 10,
+                                                      ),
+                                                      if (_isLoading)
+                                                        const SizedBox(
+                                                          width: 20,
+                                                          height: 20,
+                                                          child:
+                                                              CircularProgressIndicator(),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ),
+                                            )
                                           ],
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -326,4 +453,20 @@ class _ListsScreenState extends State<ListsScreen> {
       ],
     );
   }
+}
+
+Widget buildAvatar(String name, BuildContext context) {
+  return Avatar(
+    name: name,
+    placeholderColors: [
+      Theme.of(context).primaryColor,
+    ],
+    border: Border.all(
+      color: Theme.of(context).colorScheme.secondary,
+      width: 1,
+    ),
+    textStyle: const TextStyle(
+      fontSize: 20,
+    ),
+  );
 }

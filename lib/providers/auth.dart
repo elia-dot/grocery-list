@@ -11,6 +11,12 @@ class Auth with ChangeNotifier {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseDatabase database = FirebaseDatabase.instance;
 
+  List _suggestionsList = [];
+
+  List get suggestionsList {
+    return [..._suggestionsList];
+  }
+
   Future<void> signup(
       String name, String email, String password, String phone) async {
     try {
@@ -73,14 +79,13 @@ class Auth with ChangeNotifier {
       final fetchedUser = jsonEncode(res.value);
       final decodedData = jsonDecode(fetchedUser) as Map<String, dynamic>;
       user = AppUser(
-        email: decodedData['email'],
-        id: id,
-        name: decodedData['name'],
-        phone: decodedData['phone'],
-        allowAdding: decodedData['allowAdding'],
-        allowNotifications: decodedData['allowNotifications'],
-        friends: decodedData['friends'] ?? []
-      );
+          email: decodedData['email'],
+          id: id,
+          name: decodedData['name'],
+          phone: decodedData['phone'],
+          allowAdding: decodedData['allowAdding'],
+          allowNotifications: decodedData['allowNotifications'],
+          friends: decodedData['friends'] ?? []);
 
       return user;
     } else {
@@ -103,6 +108,28 @@ class Auth with ChangeNotifier {
       database.ref('users/${auth.currentUser!.uid}').update({setting: value});
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<void> searchUser(String term) async {
+    final res = await database.ref('users').get();
+    List users = [];
+    if (res.exists) {
+      final fetchedUser = jsonEncode(res.value);
+      final decodedData = jsonDecode(fetchedUser) as Map<String, dynamic>;
+      decodedData.forEach((key, value) {
+        if (key != auth.currentUser!.uid &&
+            term != '' &&
+            (value['name'].contains(term) || value['phone'].contains(term))) {
+          final user = {
+            'id': key,
+            'name': value['name'],
+          };
+          users.add(user);
+        }
+      });
+      _suggestionsList = users;
+      notifyListeners();
     }
   }
 }
