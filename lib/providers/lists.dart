@@ -9,9 +9,19 @@ import '/providers/list.dart';
 
 class Lists with ChangeNotifier {
   List<ShopingList> _lists = [];
+  List _suggestions = [];
+  List _listUsers = [];
 
   FirebaseDatabase database = FirebaseDatabase.instance;
   FirebaseAuth auth = FirebaseAuth.instance;
+
+  List get suggestios {
+    return [..._suggestions];
+  }
+
+  List get listUsers {
+    return [..._listUsers];
+  }
 
   //update list's list
   void updateLists(data) {
@@ -98,9 +108,45 @@ class Lists with ChangeNotifier {
 
   //check uncheck item
   Future<void> checkItem(String itemId, String listId, bool value) async {
-    print(value);
     database
         .ref('lists/$listId/items/products/$itemId')
         .update({'completed': value});
+  }
+
+  //search users
+  Future<void> searchUser(String term) async {
+    final res = await database.ref('users').get();
+    List users = [];
+    if (res.exists) {
+      final fetchedUser = jsonEncode(res.value);
+      final decodedData = jsonDecode(fetchedUser) as Map<String, dynamic>;
+      decodedData.forEach((key, value) {
+        if (key != auth.currentUser!.uid &&
+            term != '' &&
+            (value['name'].contains(term) || value['phone'].contains(term))) {
+          final user = {
+            'id': key,
+            'name': value['name'],
+          };
+          users.add(user);
+        }
+      });
+      _suggestions = users;
+      notifyListeners();
+    }
+  }
+
+  //add user to users list
+  void addUser(user) {
+    _listUsers.add(user);
+    _suggestions.removeWhere((el) => el['id'] == user['id']);
+    notifyListeners();
+  }
+
+  //remove user from users list
+  void removeUser(user) {
+    _listUsers.remove(user);
+    _suggestions.add(user);
+    notifyListeners();
   }
 }

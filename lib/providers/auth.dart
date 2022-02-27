@@ -111,25 +111,5 @@ class Auth with ChangeNotifier {
     }
   }
 
-  Future<void> searchUser(String term) async {
-    final res = await database.ref('users').get();
-    List users = [];
-    if (res.exists) {
-      final fetchedUser = jsonEncode(res.value);
-      final decodedData = jsonDecode(fetchedUser) as Map<String, dynamic>;
-      decodedData.forEach((key, value) {
-        if (key != auth.currentUser!.uid &&
-            term != '' &&
-            (value['name'].contains(term) || value['phone'].contains(term))) {
-          final user = {
-            'id': key,
-            'name': value['name'],
-          };
-          users.add(user);
-        }
-      });
-      _suggestionsList = users;
-      notifyListeners();
-    }
-  }
+ 
 }

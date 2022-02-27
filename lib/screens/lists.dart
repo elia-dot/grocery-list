@@ -1,11 +1,12 @@
 import 'package:avatars/avatars.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:grocery_list/models/user.dart';
-import 'package:grocery_list/providers/auth.dart';
-import 'package:grocery_list/providers/product.dart';
 import 'package:provider/provider.dart';
+import 'package:badges/badges.dart';
 
+import '/models/user.dart';
+import '/providers/auth.dart';
+import '/providers/product.dart';
 import '/screens/list_products.dart';
 import '/providers/list.dart';
 import '/providers/lists.dart';
@@ -28,10 +29,8 @@ class _ListsScreenState extends State<ListsScreen> {
     'items': {'completed': false, 'itemsList': <Product>[]},
   };
   var _isLoading = false;
-  var _isExpanded = false;
 
-  String searchTerm = '';
-  var users = [];
+  TextEditingController controller = TextEditingController();
 
   Future<void> submit() async {
     final listsProvider = Provider.of<Lists>(context, listen: false);
@@ -94,89 +93,116 @@ class _ListsScreenState extends State<ListsScreen> {
         });
   }
 
-  Widget usersSuggestion() {
-    print(users);
-    var authProvider = Provider.of<Auth>(context, listen: false);
-    var suggestions = authProvider.suggestionsList;
+  bool checkUser(String id, users) {
+    for (int i = 0; i < users.length; i++) {
+      if (users[i]['id'] == id) return true;
+    }
+    return false;
+  }
+
+  Widget usersSuggestion(ctx, _setState, users) {
+    final listsProvider = Provider.of<Lists>(context);
+    var suggestions = listsProvider.suggestios;
+    FocusNode focusNode = FocusNode();
+    String searchTerm = '';
+
     var res = Container(
-      constraints: const BoxConstraints(maxHeight: 400),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.2),
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.all(8),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        style: const TextStyle(color: Colors.black),
-                        decoration: const InputDecoration(
-                          hintText: "הכנס מס' טלפון או שם",
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                        ),
-                        onChanged: (value) {
-                          authProvider.searchUser(value);
-                        },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      style: const TextStyle(color: Colors.black),
+                      focusNode: focusNode,
+                      controller: controller,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: "הכנס מס' טלפון או שם",
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
                       ),
+                      onChanged: (value) {
+                        _setState(() {
+                          searchTerm = value;
+                        });
+                        listsProvider.searchUser(value);
+                      },
                     ),
-                    const Icon(Icons.search),
-                  ],
-                ),
+                  ),
+                  const Icon(Icons.search),
+                ],
               ),
             ),
-            if (searchTerm == '' && authUser.friends.isNotEmpty)
-              ListView.builder(
+          ),
+          if (searchTerm == '' && authUser.friends.isNotEmpty)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
                 shrinkWrap: true,
-                itemBuilder: (ctx, i) => InkWell(
-                  onTap: () {
-                    setState(() {
-                      users.add(authUser.friends[i]);
-                    });
-                  },
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(8),
-                    title: Text(authUser.friends[i]['name']),
-                    trailing: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: buildAvatar(authUser.friends[i]['name'], context),
-                    ),
-                  ),
-                ),
+                itemBuilder: (ctx, i) {
+                  if (!checkUser(authUser.friends[i]['id'], users)) {
+                    return InkWell(
+                      onTap: () {
+                        listsProvider.addUser(authUser.friends[i]);
+                        controller.clear();
+                      },
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(8),
+                        title: Text(authUser.friends[i]['name']),
+                        trailing: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child:
+                              buildAvatar(authUser.friends[i]['name'], context),
+                        ),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
                 itemCount: authUser.friends.length,
               ),
-            if (suggestions.isNotEmpty)
-              ListView.builder(
+            ),
+          if (searchTerm == '' && suggestions.isNotEmpty)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
                 shrinkWrap: true,
-                itemBuilder: (ctx, i) => InkWell(
-                  onTap: () {
-                    setState(() {
-                      users.add(suggestions[i]);
-                    });
-                  },
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(8),
-                    title: Text(suggestions[i]['name']),
-                    trailing: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: buildAvatar(suggestions[i]['name'], context),
-                    ),
-                  ),
-                ),
+                itemBuilder: (ctx, i) {
+                  if (!checkUser(suggestions[i]['id'], users)) {
+                    return InkWell(
+                      onTap: () {
+                        listsProvider.addUser(suggestions[i]);
+                        controller.clear();
+                      },
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(8),
+                        title: Text(suggestions[i]['name']),
+                        trailing: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: buildAvatar(suggestions[i]['name'], context),
+                        ),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
                 itemCount: suggestions.length,
-              )
-          ],
-        ),
+              ),
+            )
+        ],
       ),
     );
 
@@ -184,20 +210,187 @@ class _ListsScreenState extends State<ListsScreen> {
   }
 
   List<Widget> participants() {
-    return users
+    var listsProvider = Provider.of<Lists>(context);
+    var users = listsProvider.listUsers;
+    List<Widget> res = users
         .map(
           (e) => SizedBox(
             width: 40,
             height: 40,
-            child: buildAvatar(e['name'], context),
+            child: GestureDetector(
+              onTap: () => listsProvider.removeUser(e),
+              child: Badge(
+                position: const BadgePosition(
+                  top: -5,
+                  start: -5,
+                ),
+                badgeContent: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 10,
+                ),
+                child: buildAvatar(e['name'], context),
+              ),
+            ),
           ),
         )
         .toList();
+    res.insert(
+      0,
+      SizedBox(
+        width: 40,
+        height: 40,
+        child: buildAvatar(auth.currentUser!.displayName!, context),
+      ),
+    );
+    res.add(
+      SizedBox(
+        width: 40,
+        height: 40,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.secondary,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: IconButton(
+            icon: Icon(
+              Icons.add,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return ChangeNotifierProvider.value(
+                      value: context.watch<Lists>(),
+                      child: StatefulBuilder(
+                        builder: (ctx, _setState) => Dialog(
+                          backgroundColor: Colors.black.withOpacity(0.2),
+                          child: Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: Container(
+                              child: usersSuggestion(ctx, _setState, users),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  });
+            },
+          ),
+        ),
+      ),
+    );
+    return res;
+  }
+
+  Widget buildNewList() {
+    return StatefulBuilder(
+      builder: (context, setState) => Scaffold(
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).primaryColor,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextButton(
+                onPressed: submit,
+                child: Text(
+                  'יצירה',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+        body: GestureDetector(
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
+          },
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              color: Theme.of(context).primaryColor,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 50),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(26.0),
+                      child: Text(
+                        'רשימה חדשה',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'שם:',
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                          ),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                          ),
+                        ),
+                        labelStyle: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          listData['name'] = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('משתתפים:'),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Wrap(
+                            runSpacing: 10,
+                            spacing: 10,
+                            children: participants(),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     List<ShopingList> lists = Provider.of<Lists>(context).lists;
     return Column(
       children: [
@@ -274,179 +467,13 @@ class _ListsScreenState extends State<ListsScreen> {
                     context: context,
                     barrierLabel: 'add list',
                     pageBuilder: (_, __, ___) {
-                      return StatefulBuilder(
-                        builder: (context, setState) => Scaffold(
-                          appBar: AppBar(
-                            backgroundColor: Theme.of(context).primaryColor,
-                          ),
-                          body: GestureDetector(
-                            onTap: () {
-                              FocusScopeNode currentFocus =
-                                  FocusScope.of(context);
-                              if (!currentFocus.hasPrimaryFocus) {
-                                currentFocus.unfocus();
-                              }
-                            },
-                            child: Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: Container(
-                                color: Theme.of(context).primaryColor,
-                                height: size.height,
-                                child: SingleChildScrollView(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 50),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(26.0),
-                                          child: Text(
-                                            'רשימה חדשה',
-                                            style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary,
-                                            ),
-                                          ),
-                                        ),
-                                        TextField(
-                                          decoration: const InputDecoration(
-                                            labelText: 'שם:',
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            labelStyle: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              listData['name'] = value;
-                                            });
-                                          },
-                                        ),
-                                        const SizedBox(
-                                          height: 30,
-                                        ),
-                                        Stack(
-                                          children: [
-                                            SizedBox(
-                                              width: double.infinity,
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  const Text('משתתפים:'),
-                                                  const SizedBox(
-                                                    height: 10,
-                                                  ),
-                                                  Wrap(
-                                                    children: participants(),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                            ExpansionPanelList(
-                                              elevation: 0,
-                                              expansionCallback:
-                                                  (_, isExpanded) {
-                                                setState(() {
-                                                  _isExpanded = !_isExpanded;
-                                                });
-                                              },
-                                              children: [
-                                                ExpansionPanel(
-                                                  headerBuilder:
-                                                      (context, isExpanded) {
-                                                    return const Padding(
-                                                      padding:
-                                                          EdgeInsets.all(12.0),
-                                                      child: Text(
-                                                        'הוסף',
-                                                        style: TextStyle(
-                                                            fontSize: 17),
-                                                      ),
-                                                    );
-                                                  },
-                                                  body: usersSuggestion(),
-                                                  isExpanded: _isExpanded,
-                                                  canTapOnHeader: true,
-                                                )
-                                              ],
-                                            ),
-                                            Positioned(
-                                              bottom: 0,
-                                              child: Align(
-                                                alignment:
-                                                    AlignmentDirectional.center,
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    submit();
-                                                  },
-                                                  style: ButtonStyle(
-                                                    backgroundColor:
-                                                        MaterialStateProperty
-                                                            .all(
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .secondary,
-                                                    ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Text(
-                                                        'יצירת רשימה',
-                                                        style: TextStyle(
-                                                          fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      if (_isLoading)
-                                                        const SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child:
-                                                              CircularProgressIndicator(),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      return ChangeNotifierProvider.value(
+                        value: context.watch<Lists>(),
+                        child: buildNewList(),
                       );
                     });
               },
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             ),
           ),
         ),
