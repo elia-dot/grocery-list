@@ -1,3 +1,5 @@
+import 'package:grocery_list/models/friend.dart';
+
 class AppUser {
   String name;
   String email;
@@ -5,7 +7,8 @@ class AppUser {
   Map allowNotifications;
   bool allowAdding;
   String phone;
-  List friends;
+  List<Friend> friends;
+  List requests;
 
   AppUser({
     required this.email,
@@ -15,5 +18,6 @@ class AppUser {
     required this.allowNotifications,
     required this.phone,
     required this.friends,
+    required this.requests,
   });
 }

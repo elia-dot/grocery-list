@@ -1,15 +1,14 @@
-import 'package:avatars/avatars.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:grocery_list/widget/add_user.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart';
 
-import '/models/user.dart';
-import '/providers/auth.dart';
 import '/providers/product.dart';
 import '/screens/list_products.dart';
 import '/providers/list.dart';
 import '/providers/lists.dart';
+import '/helpers/avatar.dart';
 
 class ListsScreen extends StatefulWidget {
   const ListsScreen({Key? key}) : super(key: key);
@@ -20,7 +19,7 @@ class ListsScreen extends StatefulWidget {
 
 class _ListsScreenState extends State<ListsScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
-  late var authUser;
+
   Map<String, dynamic> listData = {
     'name': '',
     'createdBy': {},
@@ -29,8 +28,6 @@ class _ListsScreenState extends State<ListsScreen> {
     'items': {'completed': false, 'itemsList': <Product>[]},
   };
   var _isLoading = false;
-
-  TextEditingController controller = TextEditingController();
 
   Future<void> submit() async {
     final listsProvider = Provider.of<Lists>(context, listen: false);
@@ -51,19 +48,10 @@ class _ListsScreenState extends State<ListsScreen> {
     Navigator.pop(context);
   }
 
-  Future<AppUser?> getUser() async {
-    AppUser? user = await Provider.of<Auth>(context, listen: false)
-        .getUser(auth.currentUser!.uid);
-    authUser = user;
-
-    return user;
-  }
-
   @override
   void initState() {
     final listsProvider = Provider.of<Lists>(context, listen: false);
     listsProvider.listsListener();
-    getUser();
     super.initState();
   }
 
@@ -93,148 +81,33 @@ class _ListsScreenState extends State<ListsScreen> {
         });
   }
 
-  bool checkUser(String id, users) {
-    for (int i = 0; i < users.length; i++) {
-      if (users[i]['id'] == id) return true;
-    }
-    return false;
-  }
-
-  Widget usersSuggestion(ctx, _setState, users) {
-    final listsProvider = Provider.of<Lists>(context);
-    var suggestions = listsProvider.suggestios;
-    FocusNode focusNode = FocusNode();
-    String searchTerm = '';
-
-    var res = Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      style: const TextStyle(color: Colors.black),
-                      focusNode: focusNode,
-                      controller: controller,
-                      autofocus: true,
-                      decoration: const InputDecoration(
-                        hintText: "הכנס מס' טלפון או שם",
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                      ),
-                      onChanged: (value) {
-                        _setState(() {
-                          searchTerm = value;
-                        });
-                        listsProvider.searchUser(value);
-                      },
-                    ),
-                  ),
-                  const Icon(Icons.search),
-                ],
-              ),
-            ),
-          ),
-          if (searchTerm == '' && authUser.friends.isNotEmpty)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemBuilder: (ctx, i) {
-                  if (!checkUser(authUser.friends[i]['id'], users)) {
-                    return InkWell(
-                      onTap: () {
-                        listsProvider.addUser(authUser.friends[i]);
-                        controller.clear();
-                      },
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(8),
-                        title: Text(authUser.friends[i]['name']),
-                        trailing: SizedBox(
-                          width: 40,
-                          height: 40,
-                          child:
-                              buildAvatar(authUser.friends[i]['name'], context),
-                        ),
-                      ),
-                    );
-                  }
-                  return Container();
-                },
-                itemCount: authUser.friends.length,
-              ),
-            ),
-          if (searchTerm == '' && suggestions.isNotEmpty)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemBuilder: (ctx, i) {
-                  if (!checkUser(suggestions[i]['id'], users)) {
-                    return InkWell(
-                      onTap: () {
-                        listsProvider.addUser(suggestions[i]);
-                        controller.clear();
-                      },
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(8),
-                        title: Text(suggestions[i]['name']),
-                        trailing: SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: buildAvatar(suggestions[i]['name'], context),
-                        ),
-                      ),
-                    );
-                  }
-                  return Container();
-                },
-                itemCount: suggestions.length,
-              ),
-            )
-        ],
-      ),
-    );
-
-    return res;
-  }
-
-  List<Widget> participants() {
+  List<Widget> participants(_setState) {
     var listsProvider = Provider.of<Lists>(context);
     var users = listsProvider.listUsers;
-    List<Widget> res = users
-        .map(
-          (e) => SizedBox(
-            width: 40,
-            height: 40,
-            child: GestureDetector(
-              onTap: () => listsProvider.removeUser(e),
-              child: Badge(
-                position: const BadgePosition(
-                  top: -5,
-                  start: -5,
-                ),
-                badgeContent: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 10,
-                ),
-                child: buildAvatar(e['name'], context),
-              ),
+    List<Widget> res = users.map((e) {
+      return SizedBox(
+        width: 40,
+        height: 40,
+        child: GestureDetector(
+          onTap: () {
+            listsProvider.removeUser(e);
+            _setState(() {});
+          },
+          child: Badge(
+            position: const BadgePosition(
+              top: -5,
+              start: -5,
             ),
+            badgeContent: const Icon(
+              Icons.close,
+              color: Colors.white,
+              size: 10,
+            ),
+            child: buildAvatar(e.name, context),
           ),
-        )
-        .toList();
+        ),
+      );
+    }).toList();
     res.insert(
       0,
       SizedBox(
@@ -261,20 +134,7 @@ class _ListsScreenState extends State<ListsScreen> {
               showDialog(
                   context: context,
                   builder: (context) {
-                    return ChangeNotifierProvider.value(
-                      value: context.watch<Lists>(),
-                      child: StatefulBuilder(
-                        builder: (ctx, _setState) => Dialog(
-                          backgroundColor: Colors.black.withOpacity(0.2),
-                          child: Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: Container(
-                              child: usersSuggestion(ctx, _setState, users),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                    return AddUser(func: 'new');
                   });
             },
           ),
@@ -286,7 +146,7 @@ class _ListsScreenState extends State<ListsScreen> {
 
   Widget buildNewList() {
     return StatefulBuilder(
-      builder: (context, setState) => Scaffold(
+      builder: (context, _setState) => Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           backgroundColor: Theme.of(context).primaryColor,
@@ -374,7 +234,7 @@ class _ListsScreenState extends State<ListsScreen> {
                           Wrap(
                             runSpacing: 10,
                             spacing: 10,
-                            children: participants(),
+                            children: participants(_setState),
                           )
                         ],
                       ),
@@ -410,10 +270,7 @@ class _ListsScreenState extends State<ListsScreen> {
           child: ListView.builder(
             shrinkWrap: true,
             itemBuilder: (ctx, i) {
-              String listCreator =
-                  lists[i].createdBy['id'] == auth.currentUser!.uid
-                      ? 'נוצר על ידך'
-                      : 'נוצר על ידי ${lists[i].createdBy['name']}';
+              String partCount = '${lists[i].participants.length + 1} משתתפים';
               int totalItems = (lists[i].items['products'] != null
                   ? lists[i].items['products'].length
                   : 0);
@@ -430,7 +287,9 @@ class _ListsScreenState extends State<ListsScreen> {
                       title: Text(
                         lists[i].name,
                       ),
-                      subtitle: Text(listCreator),
+                      subtitle: lists[i].participants.isNotEmpty
+                          ? Text(partCount)
+                          : null,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -480,20 +339,4 @@ class _ListsScreenState extends State<ListsScreen> {
       ],
     );
   }
-}
-
-Widget buildAvatar(String name, BuildContext context) {
-  return Avatar(
-    name: name,
-    placeholderColors: [
-      Theme.of(context).primaryColor,
-    ],
-    border: Border.all(
-      color: Theme.of(context).colorScheme.secondary,
-      width: 1,
-    ),
-    textStyle: const TextStyle(
-      fontSize: 20,
-    ),
-  );
 }

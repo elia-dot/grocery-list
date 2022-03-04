@@ -1,6 +1,9 @@
+import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_list/providers/auth.dart';
 import 'package:grocery_list/screens/lists.dart';
 import 'package:grocery_list/screens/profile.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<Auth>(context);
     final List<Widget> _screenOptions = [
       const Directionality(
           textDirection: TextDirection.rtl, child: ListsScreen()),
@@ -35,14 +39,17 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedIndex = value;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'רשימות קניה',
             tooltip: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Badge(
+              child: const Icon(Icons.person),
+              showBadge: authProvider.authUser.requests.isNotEmpty,
+            ),
             label: 'פרופיל',
             tooltip: '',
           ),

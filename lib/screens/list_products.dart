@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_list/helpers/avatar.dart';
+import 'package:grocery_list/widget/add_user.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -26,6 +28,7 @@ class _ListProductsState extends State<ListProducts> {
   };
   int _value = 0;
   var _isLoading = false;
+  var _isExpanded = false;
 
   TextEditingController nameController = TextEditingController();
   TextEditingController amountController = TextEditingController();
@@ -65,6 +68,14 @@ class _ListProductsState extends State<ListProducts> {
     super.dispose();
   }
 
+  int countParticipants(List participants) {
+    int count = 0;
+    for (int i = 0; i < participants.length; i++) {
+      if (participants[i]['active']) count++;
+    }
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
     var listProvider = Provider.of<Lists>(context);
@@ -93,7 +104,7 @@ class _ListProductsState extends State<ListProducts> {
           ),
           body: Container(
             color: Theme.of(context).primaryColor,
-            child: Column(
+            child: ListView(
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -198,10 +209,6 @@ class _ListProductsState extends State<ListProducts> {
                         ],
                       ),
                       ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(
-                              Theme.of(context).colorScheme.secondary),
-                        ),
                         onPressed: _isLoading ||
                                 productData['name'] == '' ||
                                 productData['amount'] == ''
@@ -218,16 +225,162 @@ class _ListProductsState extends State<ListProducts> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: list.items['products'] == null ||
-                          list.items['products'].isEmpty
-                      ? const Center(
-                          child: Text('רשימת הקניות שלך ריקה'),
-                        )
-                      : Container(
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemBuilder: (ctx, i) => ListTile(
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ExpansionPanelList(
+                    elevation: 0,
+                    expansionCallback: (_, isExpanded) {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
+                    children: [
+                      ExpansionPanel(
+                        headerBuilder: (context, isExpanded) {
+                          return const Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: Text(
+                              'משתתפים:',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          );
+                        },
+                        body: Container(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  leading: SizedBox(
+                                    width: 50,
+                                    height: 50,
+                                    child: buildAvatar(
+                                        list.createdBy['name'], context),
+                                  ),
+                                  title: Text(list.createdBy['name']),
+                                  subtitle: const Text('מנהל הרשימה'),
+                                ),
+                                for (int i = 0;
+                                    i < list.participants.length;
+                                    i++)
+                                  if (list.participants[i]['active'])
+                                    ListTile(
+                                      leading: SizedBox(
+                                        width: 50,
+                                        height: 50,
+                                        child: buildAvatar(
+                                            list.participants[i]['name'],
+                                            context),
+                                      ),
+                                      title: Text(list.participants[i]['name']),
+                                    ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            if (countParticipants(
+                                                    list.participants) ==
+                                                0) {
+                                              listProvider.deleteList(list.id);
+                                            } else {
+                                              listProvider.leaveList(list.id,
+                                                  auth.currentUser!.uid);
+                                            }
+                                          },
+                                          child: Text(
+                                            countParticipants(
+                                                        list.participants) ==
+                                                    0
+                                                ? 'מחק רשימה'
+                                                : 'צא מהרשימה',
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 15,
+                                      ),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AddUser(
+                                                    func: 'update',
+                                                    listId: list.id,
+                                                  );
+                                                });
+                                          },
+                                          child: const Text(' הוסף משתמש'),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        isExpanded: _isExpanded,
+                        canTapOnHeader: true,
+                      )
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Divider(
+                    color: Colors.grey,
+                    thickness: 1,
+                  ),
+                ),
+                list.items['products'] == null || list.items['products'].isEmpty
+                    ? const Center(
+                        child: Text('רשימת הקניות ריקה'),
+                      )
+                    : Container(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemBuilder: (ctx, i) => Dismissible(
+                            key: Key(list.items['products'][i].id),
+                            onDismissed: (direction) {
+                              listProvider.removeItem(
+                                  list.items['products'][i].id, list.id);
+                            },
+                            background: Container(
+                              color: Colors.red,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                    Expanded(child: Container()),
+                                    Icon(
+                                      Icons.delete,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            child: ListTile(
                               leading: GestureDetector(
                                 onTap: () {
                                   listProvider.checkItem(
@@ -245,10 +398,10 @@ class _ListProductsState extends State<ListProducts> {
                               title: Text(list.items['products'][i].name),
                               trailing: Text(list.items['products'][i].amount),
                             ),
-                            itemCount: list.items['products'].length,
                           ),
+                          itemCount: list.items['products'].length,
                         ),
-                )
+                      )
               ],
             ),
           ),

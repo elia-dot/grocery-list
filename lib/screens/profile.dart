@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:avatars/avatars.dart';
+import 'package:grocery_list/helpers/avatar.dart';
+import 'package:grocery_list/models/friend.dart';
 import 'package:grocery_list/models/user.dart';
+import 'package:grocery_list/widget/add_user.dart';
 import 'package:provider/provider.dart';
 
 import 'package:grocery_list/providers/auth.dart';
@@ -15,11 +18,12 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final FirebaseAuth auth = FirebaseAuth.instance;
-  var profileUser;
   var allowAdding = false;
   Map<String, bool> notifications = {'itemAdded': true, 'addedToList': true};
   bool isNotificationsExpanded = false;
   bool isSettingsExpanded = false;
+  bool isFriendsExpanded = false;
+  bool isRequestsExpanded = false;
 
   var isNameEditable = false;
   var isPhoneEditable = false;
@@ -35,27 +39,13 @@ class _ProfileState extends State<Profile> {
   FocusNode nameNode = FocusNode();
   FocusNode phoneNode = FocusNode();
 
-  Future<AppUser?> getUser() async {
-    AppUser? user = await Provider.of<Auth>(context, listen: false)
-        .getUser(auth.currentUser!.uid);
-    profileUser = user;
-    if (user != null) {
-      setState(() {
-        allowAdding = user.allowAdding;
-        notifications['addedToList'] = user.allowNotifications['addedToList'];
-        notifications['itemAdded'] = user.allowNotifications['itemAdded'];
-      });
-      initialName = auth.currentUser!.displayName!;
-      initialPhone = profileUser.phone;
-      nameController = TextEditingController(text: initialName);
-      phoneController = TextEditingController(text: initialPhone);
-    }
-    return user;
-  }
-
   @override
   void initState() {
-    getUser();
+    final authProvider = Provider.of<Auth>(context, listen: false);
+    authProvider.setAuthUser();
+    AppUser authUser = authProvider.authUser;
+    initialName = authUser.name;
+    initialPhone = authUser.phone;
     phoneNode.addListener(() {
       if (phoneNode.hasFocus) {
         setState(() {
@@ -68,15 +58,80 @@ class _ProfileState extends State<Profile> {
 
   @override
   void dispose() {
-    nameController.dispose();
-    phoneController.dispose();
     nameNode.dispose();
     phoneNode.dispose();
     super.dispose();
   }
 
+  Widget friendsList(BuildContext context, AppUser authUser) {
+    List<Widget> res = [];
+    for (Friend friend in authUser.friends) {
+      Widget tile = Dismissible(
+        key: Key(friend.name),
+        onDismissed: (direction) {
+          Provider.of<Auth>(context, listen: false).removeFriend(friend.id);
+        },
+        background: Container(
+          color: Colors.red,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+                Expanded(child: Container()),
+                Icon(
+                  Icons.delete,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+        child: ListTile(
+          leading: friend.confirmed
+              ? null
+              : TextButton(
+                  onPressed: () {
+                    Provider.of<Auth>(context, listen: false).resendReq(friend);
+                  },
+                  child: const Text('שלח שוב'),
+                ),
+          title: Text(friend.name),
+          subtitle: friend.confirmed
+              ? Text(friend.phone)
+              : const Text('ממתין לאישור'),
+          trailing: SizedBox(
+            width: 45,
+            height: 45,
+            child: buildAvatar(friend.name, context),
+          ),
+        ),
+      );
+      res.add(tile);
+    }
+    res.add(ElevatedButton(
+        onPressed: () {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AddUser(
+                  func: 'friends',
+                );
+              });
+        },
+        child: const Text('הוסף חברים')));
+    return Column(
+      children: res,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    var authProvider = Provider.of<Auth>(context);
+    AppUser authUser = authProvider.authUser;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +139,7 @@ class _ProfileState extends State<Profile> {
           Align(
             alignment: Alignment.center,
             child: Avatar(
-              name: initialName,
+              name: authUser.name,
               placeholderColors: [
                 Theme.of(context).primaryColor,
               ],
@@ -312,21 +367,12 @@ class _ProfileState extends State<Profile> {
             thickness: 0.5,
             color: Theme.of(context).colorScheme.secondary,
           ),
-          const SizedBox(
-            height: 40,
-          ),
-          Divider(
-            thickness: 0.5,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
           SwitchListTile.adaptive(
-            value: allowAdding,
+            value: authUser.allowAdding,
             title: const Text('אפשר לצרף אותי לרשימות'),
             activeTrackColor: Colors.green,
             onChanged: (value) {
-              setState(() {
-                allowAdding = value;
-              });
+              authProvider.updateSettings('allowAdding', value);
             },
           ),
           Divider(
@@ -355,32 +401,136 @@ class _ProfileState extends State<Profile> {
                   shrinkWrap: true,
                   children: [
                     SwitchListTile.adaptive(
-                      value: notifications['addedToList']!,
+                      value: authUser.allowNotifications['addedToList'],
                       title: const Text('הוספה לרשימה חדשה'),
                       activeTrackColor: Colors.green,
                       onChanged: (value) {
-                        setState(() {
-                          notifications['addedToList'] = value;
-                        });
-                        Provider.of<Auth>(context, listen: false)
-                            .updateNotifications('addedToList', value);
+                        authProvider.updateNotifications('addedToList', value);
                       },
                     ),
                     SwitchListTile.adaptive(
-                      value: notifications['itemAdded']!,
+                      value: authUser.allowNotifications['itemAdded'],
                       title: const Text('הוספת מוצר לרשימה'),
                       activeTrackColor: Colors.green,
                       onChanged: (value) {
-                        setState(() {
-                          notifications['itemAdded'] = value;
-                        });
-                        Provider.of<Auth>(context, listen: false)
-                            .updateNotifications('itemAdded', value);
+                        authProvider.updateNotifications('itemAdded', value);
                       },
                     ),
                   ],
                 ),
                 isExpanded: isNotificationsExpanded,
+                canTapOnHeader: true,
+              )
+            ],
+          ),
+          Divider(
+            thickness: 0.5,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          ExpansionPanelList(
+            elevation: 0,
+            expansionCallback: (_, isExpanded) {
+              setState(() {
+                isFriendsExpanded = !isFriendsExpanded;
+              });
+            },
+            children: [
+              ExpansionPanel(
+                headerBuilder: (context, isExpanded) {
+                  return const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Text(
+                      'חברים',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  );
+                },
+                body: friendsList(context, authUser),
+                isExpanded: isFriendsExpanded,
+                canTapOnHeader: true,
+              )
+            ],
+          ),
+          Divider(
+            thickness: 0.5,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          ExpansionPanelList(
+            elevation: 0,
+            expansionCallback: (_, isExpanded) {
+              setState(() {
+                isRequestsExpanded = !isRequestsExpanded;
+              });
+            },
+            children: [
+              ExpansionPanel(
+                headerBuilder: (context, isExpanded) {
+                  return Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: [
+                        if (authUser.requests.isNotEmpty)
+                          Container(
+                            width: 20,
+                            height: 20,
+                            margin: const EdgeInsets.only(left: 5),
+                            decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Center(
+                              child: Text('${authUser.requests.length}'),
+                            ),
+                          ),
+                        const Text(
+                          'בקשות',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                body: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: authUser.requests.length,
+                    itemBuilder: (ctx, i) {
+                      return ListTile(
+                        leading: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                authProvider
+                                    .deleteRequest(authUser.requests[i]['id']);
+                                setState(() {});
+                              },
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.red,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                authProvider
+                                    .confirmRequest(authUser.requests[i]);
+                                setState(() {});
+                              },
+                              icon: const Icon(
+                                Icons.check,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        title: Text(authUser.requests[i]['name']),
+                        trailing: SizedBox(
+                          width: 45,
+                          height: 45,
+                          child: buildAvatar(
+                              authUser.requests[i]['name'], context),
+                        ),
+                      );
+                    }),
+                isExpanded: isRequestsExpanded,
                 canTapOnHeader: true,
               )
             ],
