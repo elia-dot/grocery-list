@@ -125,6 +125,7 @@ class Auth with ChangeNotifier {
         friends: friendsList,
         requests: requests,
       );
+      notifyListeners();
     });
   }
 
@@ -139,7 +140,7 @@ class Auth with ChangeNotifier {
     }
   }
 
-  Future<void> updateSettings(String setting, bool value) async {
+  Future<void> updateSettings(String setting, var value) async {
     try {
       database.ref('users/${auth.currentUser!.uid}').update({setting: value});
       notifyListeners();

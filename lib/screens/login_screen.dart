@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_list/models/fb_exeption.dart';
+import 'package:grocery_list/widget/reset_password.dart';
 import 'package:provider/provider.dart';
 
 import '/providers/auth.dart';
@@ -93,9 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       print(e);
     }
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override
@@ -106,83 +104,92 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0.0,
       ),
       body: Center(
-        child: Container(
-          width: 300,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                child: CircleAvatar(
-                  child: Icon(
-                    Icons.person_outline_outlined,
-                    color: Theme.of(context).colorScheme.secondary,
-                    size: 80,
+        child: SingleChildScrollView(
+          child: Container(
+            width: 300,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  child: CircleAvatar(
+                    child: Icon(
+                      Icons.person_outline_outlined,
+                      color: Theme.of(context).colorScheme.secondary,
+                      size: 80,
+                    ),
                   ),
                 ),
-              ),
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _emailInput(
-                      formData,
-                      _emailNode,
-                      _isEmailError,
-                      throwEmailError,
-                      emailError,
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    _passwordInput(
-                      formData,
-                      _passwordNode,
-                      _isPasswordError,
-                      passwordError,
-                      throwPasswordError,
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'שכחתי סיסמא',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
+                const SizedBox(
+                  height: 50,
+                ),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _emailInput(
+                        formData,
+                        _emailNode,
+                        _isEmailError,
+                        throwEmailError,
+                        emailError,
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      _passwordInput(
+                        formData,
+                        _passwordNode,
+                        _isPasswordError,
+                        passwordError,
+                        throwPasswordError,
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (ctx) => ResetPassword());
+                            },
+                            child: const Text(
+                              'שכחתי סיסמא',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        _submitButton(_isLoading, _submit, formData),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context)
-                      .pushReplacementNamed(SignupScreen.routeName);
-                },
-                child: const Text(
-                  'צור חשבון משתמש חדש',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          _submitButton(_isLoading, _submit, formData),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pushReplacementNamed(SignupScreen.routeName);
+                  },
+                  child: const Text(
+                    'צור חשבון משתמש חדש',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -212,7 +219,6 @@ Widget _emailInput(
       decoration: InputDecoration(
         labelText: 'אימייל',
         errorText: emailError != "" ? emailError : null,
-        
         suffixIcon: Icon(
           Icons.email_outlined,
           color: _isEmailError ? Colors.red : Colors.indigo,

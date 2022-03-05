@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:grocery_list/providers/auth.dart';
 import 'package:grocery_list/widget/add_user.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart';
@@ -51,6 +52,8 @@ class _ListsScreenState extends State<ListsScreen> {
   @override
   void initState() {
     final listsProvider = Provider.of<Lists>(context, listen: false);
+    final authProvider = Provider.of<Auth>(context, listen: false);
+    authProvider.setAuthUser();
     listsProvider.listsListener();
     super.initState();
   }

@@ -18,8 +18,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final FirebaseAuth auth = FirebaseAuth.instance;
-  var allowAdding = false;
-  Map<String, bool> notifications = {'itemAdded': true, 'addedToList': true};
+  var allowAdding;
   bool isNotificationsExpanded = false;
   bool isSettingsExpanded = false;
   bool isFriendsExpanded = false;
@@ -31,10 +30,12 @@ class _ProfileState extends State<Profile> {
   var initialName = '';
   var initialPhone = '';
 
+  Map notification = {};
+
   var errorText = '';
 
-  var nameController;
-  var phoneController;
+  TextEditingController nameController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
 
   FocusNode nameNode = FocusNode();
   FocusNode phoneNode = FocusNode();
@@ -42,10 +43,10 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     final authProvider = Provider.of<Auth>(context, listen: false);
-    authProvider.setAuthUser();
-    AppUser authUser = authProvider.authUser;
-    initialName = authUser.name;
-    initialPhone = authUser.phone;
+    initialName = authProvider.authUser.name;
+    initialPhone = authProvider.authUser.phone;
+    notification = authProvider.authUser.allowNotifications;
+    allowAdding = authProvider.authUser.allowAdding;
     phoneNode.addListener(() {
       if (phoneNode.hasFocus) {
         setState(() {
@@ -172,7 +173,7 @@ class _ProfileState extends State<Profile> {
                   return const Padding(
                     padding: EdgeInsets.all(12.0),
                     child: Text(
-                      'הגדרות פרופיל',
+                      'פרטי פרופיל',
                       style: TextStyle(fontSize: 16),
                     ),
                   );
@@ -368,10 +369,13 @@ class _ProfileState extends State<Profile> {
             color: Theme.of(context).colorScheme.secondary,
           ),
           SwitchListTile.adaptive(
-            value: authUser.allowAdding,
+            value: allowAdding,
             title: const Text('אפשר לצרף אותי לרשימות'),
             activeTrackColor: Colors.green,
             onChanged: (value) {
+              setState(() {
+                allowAdding = !allowAdding;
+              });
               authProvider.updateSettings('allowAdding', value);
             },
           ),
@@ -401,18 +405,26 @@ class _ProfileState extends State<Profile> {
                   shrinkWrap: true,
                   children: [
                     SwitchListTile.adaptive(
-                      value: authUser.allowNotifications['addedToList'],
+                      value: notification['addedToList'],
                       title: const Text('הוספה לרשימה חדשה'),
                       activeTrackColor: Colors.green,
                       onChanged: (value) {
+                        setState(() {
+                          notification['addedToList'] =
+                              !notification['addedToList'];
+                        });
                         authProvider.updateNotifications('addedToList', value);
                       },
                     ),
                     SwitchListTile.adaptive(
-                      value: authUser.allowNotifications['itemAdded'],
+                      value: notification['itemAdded'],
                       title: const Text('הוספת מוצר לרשימה'),
                       activeTrackColor: Colors.green,
                       onChanged: (value) {
+                        setState(() {
+                          notification['itemAdded'] =
+                              !notification['itemAdded'];
+                        });
                         authProvider.updateNotifications('itemAdded', value);
                       },
                     ),
@@ -455,21 +467,21 @@ class _ProfileState extends State<Profile> {
             thickness: 0.5,
             color: Theme.of(context).colorScheme.secondary,
           ),
-          ExpansionPanelList(
-            elevation: 0,
-            expansionCallback: (_, isExpanded) {
-              setState(() {
-                isRequestsExpanded = !isRequestsExpanded;
-              });
-            },
-            children: [
-              ExpansionPanel(
-                headerBuilder: (context, isExpanded) {
-                  return Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      children: [
-                        if (authUser.requests.isNotEmpty)
+          if (authUser.requests.isNotEmpty)
+            ExpansionPanelList(
+              elevation: 0,
+              expansionCallback: (_, isExpanded) {
+                setState(() {
+                  isRequestsExpanded = !isRequestsExpanded;
+                });
+              },
+              children: [
+                ExpansionPanel(
+                  headerBuilder: (context, isExpanded) {
+                    return Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        children: [
                           Container(
                             width: 20,
                             height: 20,
@@ -481,64 +493,65 @@ class _ProfileState extends State<Profile> {
                               child: Text('${authUser.requests.length}'),
                             ),
                           ),
-                        const Text(
-                          'בקשות',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                body: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: authUser.requests.length,
-                    itemBuilder: (ctx, i) {
-                      return ListTile(
-                        leading: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                authProvider
-                                    .deleteRequest(authUser.requests[i]['id']);
-                                setState(() {});
-                              },
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.red,
+                          const Text(
+                            'בקשות',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  body: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: authUser.requests.length,
+                      itemBuilder: (ctx, i) {
+                        return ListTile(
+                          leading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  authProvider.deleteRequest(
+                                      authUser.requests[i]['id']);
+                                  setState(() {});
+                                },
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                authProvider
-                                    .confirmRequest(authUser.requests[i]);
-                                setState(() {});
-                              },
-                              icon: const Icon(
-                                Icons.check,
-                                color: Colors.green,
+                              IconButton(
+                                onPressed: () {
+                                  authProvider
+                                      .confirmRequest(authUser.requests[i]);
+                                  setState(() {});
+                                },
+                                icon: const Icon(
+                                  Icons.check,
+                                  color: Colors.green,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        title: Text(authUser.requests[i]['name']),
-                        trailing: SizedBox(
-                          width: 45,
-                          height: 45,
-                          child: buildAvatar(
-                              authUser.requests[i]['name'], context),
-                        ),
-                      );
-                    }),
-                isExpanded: isRequestsExpanded,
-                canTapOnHeader: true,
-              )
-            ],
-          ),
-          Divider(
-            thickness: 0.5,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
+                            ],
+                          ),
+                          title: Text(authUser.requests[i]['name']),
+                          trailing: SizedBox(
+                            width: 45,
+                            height: 45,
+                            child: buildAvatar(
+                                authUser.requests[i]['name'], context),
+                          ),
+                        );
+                      }),
+                  isExpanded: isRequestsExpanded,
+                  canTapOnHeader: true,
+                )
+              ],
+            ),
+          if (authUser.requests.isNotEmpty)
+            Divider(
+              thickness: 0.5,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
         ],
       ),
     );

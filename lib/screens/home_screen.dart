@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<Auth>(context);
+    authProvider.setAuthUser();
     final List<Widget> _screenOptions = [
       const Directionality(
           textDirection: TextDirection.rtl, child: ListsScreen()),
