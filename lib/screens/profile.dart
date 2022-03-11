@@ -383,62 +383,62 @@ class _ProfileState extends State<Profile> {
             thickness: 0.5,
             color: Theme.of(context).colorScheme.secondary,
           ),
-          ExpansionPanelList(
-            elevation: 0,
-            expansionCallback: (_, isExpanded) {
-              setState(() {
-                isNotificationsExpanded = !isNotificationsExpanded;
-              });
-            },
-            children: [
-              ExpansionPanel(
-                headerBuilder: (context, isExpanded) {
-                  return const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
-                      'התראות',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  );
-                },
-                body: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    SwitchListTile.adaptive(
-                      value: notification['addedToList'],
-                      title: const Text('הוספה לרשימה חדשה'),
-                      activeTrackColor: Colors.green,
-                      onChanged: (value) {
-                        setState(() {
-                          notification['addedToList'] =
-                              !notification['addedToList'];
-                        });
-                        authProvider.updateNotifications('addedToList', value);
-                      },
-                    ),
-                    SwitchListTile.adaptive(
-                      value: notification['itemAdded'],
-                      title: const Text('הוספת מוצר לרשימה'),
-                      activeTrackColor: Colors.green,
-                      onChanged: (value) {
-                        setState(() {
-                          notification['itemAdded'] =
-                              !notification['itemAdded'];
-                        });
-                        authProvider.updateNotifications('itemAdded', value);
-                      },
-                    ),
-                  ],
-                ),
-                isExpanded: isNotificationsExpanded,
-                canTapOnHeader: true,
-              )
-            ],
-          ),
-          Divider(
-            thickness: 0.5,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
+          // ExpansionPanelList(
+          //   elevation: 0,
+          //   expansionCallback: (_, isExpanded) {
+          //     setState(() {
+          //       isNotificationsExpanded = !isNotificationsExpanded;
+          //     });
+          //   },
+          //   children: [
+          //     ExpansionPanel(
+          //       headerBuilder: (context, isExpanded) {
+          //         return const Padding(
+          //           padding: EdgeInsets.all(12.0),
+          //           child: Text(
+          //             'התראות',
+          //             style: TextStyle(fontSize: 16),
+          //           ),
+          //         );
+          //       },
+          //       body: ListView(
+          //         shrinkWrap: true,
+          //         children: [
+          //           SwitchListTile.adaptive(
+          //             value: notification['addedToList'],
+          //             title: const Text('הוספה לרשימה חדשה'),
+          //             activeTrackColor: Colors.green,
+          //             onChanged: (value) {
+          //               setState(() {
+          //                 notification['addedToList'] =
+          //                     !notification['addedToList'];
+          //               });
+          //               authProvider.updateNotifications('addedToList', value);
+          //             },
+          //           ),
+          //           SwitchListTile.adaptive(
+          //             value: notification['itemAdded'],
+          //             title: const Text('הוספת מוצר לרשימה'),
+          //             activeTrackColor: Colors.green,
+          //             onChanged: (value) {
+          //               setState(() {
+          //                 notification['itemAdded'] =
+          //                     !notification['itemAdded'];
+          //               });
+          //               authProvider.updateNotifications('itemAdded', value);
+          //             },
+          //           ),
+          //         ],
+          //       ),
+          //       isExpanded: isNotificationsExpanded,
+          //       canTapOnHeader: true,
+          //     )
+          //   ],
+          // ),
+          // Divider(
+          //   thickness: 0.5,
+          //   color: Theme.of(context).colorScheme.secondary,
+          // ),
           ExpansionPanelList(
             elevation: 0,
             expansionCallback: (_, isExpanded) {

@@ -10,8 +10,8 @@ import '/providers/list.dart';
 
 class Lists with ChangeNotifier {
   List<ShopingList> _lists = [];
-
   List _listUsers = [];
+  bool isFetchingLists = false;
 
   FirebaseDatabase database = FirebaseDatabase.instance;
   FirebaseAuth auth = FirebaseAuth.instance;

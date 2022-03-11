@@ -254,7 +254,9 @@ class _ListsScreenState extends State<ListsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<ShopingList> lists = Provider.of<Lists>(context).lists;
+    final listsPeovider = Provider.of<Lists>(context);
+    List<ShopingList> lists = listsPeovider.lists;
+    print(listsPeovider.isFetchingLists);
     return Column(
       children: [
         const Center(

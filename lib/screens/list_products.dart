@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_list/helpers/avatar.dart';
-import 'package:grocery_list/widget/add_user.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '/helpers/avatar.dart';
+import '/widget/add_user.dart';
 import '/providers/list.dart';
 import '/providers/lists.dart';
 
@@ -23,15 +23,18 @@ class _ListProductsState extends State<ListProducts> {
   Map<String, dynamic> productData = {
     'name': '',
     'amount': '',
+    'category': 'כללי',
     'addedby': {},
     'completed': false
   };
   int _value = 0;
   var _isLoading = false;
   var _isExpanded = false;
+  var isFormVisible = false;
 
   TextEditingController nameController = TextEditingController();
   TextEditingController amountController = TextEditingController();
+  TextEditingController categoryController = TextEditingController();
   FocusNode nameNode = FocusNode();
 
   Future<void> add() async {
@@ -102,129 +105,147 @@ class _ListProductsState extends State<ListProducts> {
             title: Text(list.name),
             centerTitle: true,
           ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => setState(() {
+              isFormVisible = !isFormVisible;
+            }),
+            child: Icon(isFormVisible ? Icons.close : Icons.add),
+          ),
           body: Container(
             color: Theme.of(context).primaryColor,
             child: ListView(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            flex: 2,
-                            child: TextField(
-                              controller: nameController,
-                              focusNode: nameNode,
-                              decoration: const InputDecoration(
-                                labelText: 'שם:',
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                labelStyle: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                              onChanged: (String value) {
-                                setState(() {
-                                  productData['name'] = value;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Flexible(
-                            flex: 1,
-                            child: TextFormField(
-                              controller: amountController,
-                              decoration: const InputDecoration(
-                                labelText: 'כמות:',
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                labelStyle: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                setState(() {
-                                  productData['amount'] = value;
-                                });
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 27),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton(
-                                dropdownColor: Theme.of(context).primaryColor,
-                                elevation: 3,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                ),
-                                value: _value,
-                                items: const [
-                                  DropdownMenuItem(
-                                    child: Text(
-                                      'יחידות',
+                if (isFormVisible)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  flex: 3,
+                                  child: TextField(
+                                    controller: nameController,
+                                    focusNode: nameNode,
+                                    decoration: const InputDecoration(
+                                      labelText: 'שם:',
+                                      enabledBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    value: 0,
+                                    onChanged: (String value) {
+                                      setState(() {
+                                        productData['name'] = value;
+                                      });
+                                    },
                                   ),
-                                  DropdownMenuItem(
-                                    child: Text(
-                                      'ק"ג',
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                Flexible(
+                                  flex: 1,
+                                  child: TextFormField(
+                                    controller: amountController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'כמות:',
+                                      enabledBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    value: 1,
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        productData['amount'] = value;
+                                      });
+                                    },
                                   ),
-                                ],
-                                onChanged: (int? value) {
-                                  setState(() {
-                                    _value = value!;
-                                  });
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 27),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton(
+                                      dropdownColor:
+                                          Theme.of(context).primaryColor,
+                                      elevation: 3,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                      ),
+                                      value: _value,
+                                      items: const [
+                                        DropdownMenuItem(
+                                          child: Text(
+                                            'יחידות',
+                                          ),
+                                          value: 0,
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text(
+                                            'ק"ג',
+                                          ),
+                                          value: 1,
+                                        ),
+                                      ],
+                                      onChanged: (int? value) {
+                                        setState(() {
+                                          _value = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        ElevatedButton(
+                          onPressed: _isLoading ||
+                                  productData['name'] == '' ||
+                                  productData['amount'] == ''
+                              ? () {}
+                              : () {
+                                  add();
                                 },
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: _isLoading ||
-                                productData['name'] == '' ||
-                                productData['amount'] == ''
-                            ? () {}
-                            : () {
-                                add();
-                              },
-                        child: const Text('הוסף'),
-                      ),
-                      const Divider(
-                        color: Colors.grey,
-                        thickness: 1,
-                      ),
-                    ],
+                          child: const Text('הוסף'),
+                        ),
+                        const Divider(
+                          color: Colors.grey,
+                          thickness: 1,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ExpansionPanelList(
@@ -246,7 +267,7 @@ class _ListProductsState extends State<ListProducts> {
                           );
                         },
                         body: Container(
-                          constraints: const BoxConstraints(maxHeight: 200),
+                          constraints: const BoxConstraints(maxHeight: 300),
                           child: SingleChildScrollView(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
