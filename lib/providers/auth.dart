@@ -326,4 +326,20 @@ class Auth with ChangeNotifier {
     }
     notifyListeners();
   }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      await auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      print(e.code);
+      if (e.code == 'invalid-email') {
+        throw FBExeption('נא הכנס אימייל תקין');
+      } else if (e.code == 'user-not-found') {
+        throw FBExeption('אימייל לא נמצא');
+      }
+    } catch (e) {
+      print('error: $e');
+      throw e;
+    }
+  }
 }

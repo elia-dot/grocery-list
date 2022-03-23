@@ -80,6 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await Provider.of<Auth>(context, listen: false)
           .login(formData['email']!, formData['password']!);
+      setState(() {
+        _isLoading = false;
+      });
     } on FBExeption catch (msg) {
       if (msg.toString() == 'משתמש לא נמצא') {
         setState(() {
@@ -91,6 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
           passwordError = msg.toString();
         });
       }
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
       print(e);
     }

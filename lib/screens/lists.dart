@@ -12,7 +12,7 @@ import '/providers/lists.dart';
 import '/helpers/avatar.dart';
 
 class ListsScreen extends StatefulWidget {
-  const ListsScreen({Key? key}) : super(key: key);
+   const ListsScreen({Key? key}) : super(key: key);
 
   @override
   State<ListsScreen> createState() => _ListsScreenState();
@@ -256,92 +256,107 @@ class _ListsScreenState extends State<ListsScreen> {
   Widget build(BuildContext context) {
     final listsPeovider = Provider.of<Lists>(context);
     List<ShopingList> lists = listsPeovider.lists;
-    print(listsPeovider.isFetchingLists);
-    return Column(
-      children: [
-        const Center(
-          child: Text(
-            'הרשימות שלי:',
-            style: TextStyle(
-              fontSize: 30,
+    return Scaffold(
+      body: Column(
+        children: [
+          const Center(
+            child: Text(
+              'הרשימות שלי:',
+              style: TextStyle(
+                fontSize: 30,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemBuilder: (ctx, i) {
-              String partCount = '${lists[i].participants.length + 1} משתתפים';
-              int totalItems = (lists[i].items['products'] != null
-                  ? lists[i].items['products'].length
-                  : 0);
-              int completedItems = countItems(lists[i].items['products']);
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      showList(lists[i].id);
-                    },
-                    child: ListTile(
-                      tileColor: Colors.black26,
-                      title: Text(
-                        lists[i].name,
-                      ),
-                      subtitle: lists[i].participants.isNotEmpty
-                          ? Text(partCount)
-                          : null,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('$completedItems/$totalItems'),
-                          const SizedBox(
-                            width: 10,
+          const SizedBox(
+            height: 30,
+          ),
+          if (listsPeovider.isFetchingLists)
+            Expanded(
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            ),
+          if (!listsPeovider.isFetchingLists)
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemBuilder: (ctx, i) {
+                  String partCount =
+                      '${lists[i].participants.length + 1} משתתפים';
+                  int totalItems = (lists[i].items['products'] != null
+                      ? lists[i].items['products'].length
+                      : 0);
+                  int completedItems = countItems(lists[i].items['products']);
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          showList(lists[i].id);
+                        },
+                        child: ListTile(
+                          tileColor: Colors.black26,
+                          title: Text(
+                            lists[i].name,
                           ),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.white,
-                            size: 15,
-                          )
-                        ],
+                          subtitle: lists[i].participants.isNotEmpty
+                              ? Text(partCount)
+                              : null,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('$completedItems/$totalItems'),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white,
+                                size: 15,
+                              )
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  LinearProgressIndicator(
-                    value: dividerWidth(totalItems, completedItems),
-                    color: Colors.green,
-                  )
-                ],
-              );
-            },
-            itemCount: lists.length,
-          ),
-        ),
-        Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: FloatingActionButton(
-              onPressed: () {
-                showGeneralDialog(
-                    context: context,
-                    barrierLabel: 'add list',
-                    pageBuilder: (_, __, ___) {
-                      return ChangeNotifierProvider.value(
-                        value: context.watch<Lists>(),
-                        child: buildNewList(),
-                      );
-                    });
-              },
-              child: const Icon(Icons.add),
+                      LinearProgressIndicator(
+                        value: dividerWidth(totalItems, completedItems),
+                        color: Colors.green,
+                      )
+                    ],
+                  );
+                },
+                itemCount: lists.length,
+              ),
+            ),
+          if (!listsPeovider.isFetchingLists && lists.isEmpty)
+            const Expanded(
+              child: Text('אין רשימות להצגה'),
+            ),
+          Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FloatingActionButton(
+                onPressed: () {
+                  showGeneralDialog(
+                      context: context,
+                      barrierLabel: 'add list',
+                      pageBuilder: (_, __, ___) {
+                        return ChangeNotifierProvider.value(
+                          value: context.watch<Lists>(),
+                          child: buildNewList(),
+                        );
+                      });
+                },
+                child: const Icon(Icons.add),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '/providers/lists.dart';
 import '/providers/auth.dart';
 import '/screens/signup_screen.dart';
+import '/screens/lists.dart';
 import '/screens/login_screen.dart';
 import '/screens/home_screen.dart';
 import 'firebase_options.dart';
@@ -84,6 +85,10 @@ class MyApp extends StatelessWidget {
               LoginScreen.routeName: (ctx) => const Directionality(
                     textDirection: TextDirection.rtl,
                     child: LoginScreen(),
+                  ),
+              HomeScreen.routeName: (ctx) => const Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: HomeScreen(),
                   ),
             },
           ),

@@ -11,7 +11,7 @@ import '/providers/list.dart';
 class Lists with ChangeNotifier {
   List<ShopingList> _lists = [];
   List _listUsers = [];
-  bool isFetchingLists = false;
+  bool isFetchingLists = true;
 
   FirebaseDatabase database = FirebaseDatabase.instance;
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -23,6 +23,7 @@ class Lists with ChangeNotifier {
   //update list's list
   void updateLists(data) {
     _lists = data;
+    isFetchingLists = false;
     notifyListeners();
   }
 
@@ -111,7 +112,6 @@ class Lists with ChangeNotifier {
 
   //create new list
   Future<void> createList(Map data) async {
-    // data['participants'] = _listUsers;
     DatabaseReference ref = FirebaseDatabase.instance.ref("lists");
     await ref.push().set(data);
   }

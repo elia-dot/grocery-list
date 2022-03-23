@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_list/models/fb_exeption.dart';
 import 'package:grocery_list/providers/auth.dart';
+import 'package:grocery_list/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 
 import '/screens/login_screen.dart';
@@ -117,6 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       await Provider.of<Auth>(context, listen: false).signup(formData['name']!,
           formData['email']!, formData['password']!, formData['phone']!);
+      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
     } on FBExeption catch (msg) {
       setState(() {
         emailError = msg.toString();
