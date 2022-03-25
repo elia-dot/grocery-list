@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '/providers/lists.dart';
 import '/providers/auth.dart';
 import '/screens/signup_screen.dart';
-import '/screens/lists.dart';
 import '/screens/login_screen.dart';
 import '/screens/home_screen.dart';
 import 'firebase_options.dart';
@@ -27,7 +26,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +41,15 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<Auth>(
         builder: (ctx, auth, _) => Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.bottomRight,
               end: Alignment.topLeft,
               colors: [
-                Colors.indigo.shade900,
+                Color.fromARGB(255, 1, 45, 112),
                 Colors.redAccent,
               ],
-              stops: const [0.7, 0.95],
+              stops: [0.7, 0.95],
             ),
           ),
           child: MaterialApp(
@@ -59,7 +58,7 @@ class MyApp extends StatelessWidget {
             builder: DevicePreview.appBuilder,
             title: 'רשימת קניות',
             theme: ThemeData(
-              primarySwatch: Colors.indigo,
+              primaryColor: const Color.fromARGB(255, 1, 45, 112),
               colorScheme: ColorScheme.fromSwatch()
                   .copyWith(secondary: Colors.redAccent),
               scaffoldBackgroundColor: Colors.transparent,

@@ -29,11 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(),
       body: _screenOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.blue.shade800,
         selectedItemColor: Theme.of(context).colorScheme.secondary,
         unselectedItemColor: Colors.white,
         selectedFontSize: 18,
-        elevation: 16,
+        elevation: 8,
         showUnselectedLabels: false,
         currentIndex: _selectedIndex,
         onTap: (value) {

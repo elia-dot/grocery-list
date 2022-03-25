@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:grocery_list/providers/auth.dart';
 
 class Profile extends StatefulWidget {
-  Profile({Key? key}) : super(key: key);
+  const Profile({Key? key}) : super(key: key);
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -18,7 +18,8 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final FirebaseAuth auth = FirebaseAuth.instance;
-  var allowAdding;
+  late AppUser authUser;
+  bool allowAdding = false;
   bool isNotificationsExpanded = false;
   bool isSettingsExpanded = false;
   bool isFriendsExpanded = false;
@@ -29,8 +30,6 @@ class _ProfileState extends State<Profile> {
 
   var initialName = '';
   var initialPhone = '';
-
-  Map notification = {};
 
   var errorText = '';
 
@@ -45,8 +44,8 @@ class _ProfileState extends State<Profile> {
     final authProvider = Provider.of<Auth>(context, listen: false);
     initialName = authProvider.authUser.name;
     initialPhone = authProvider.authUser.phone;
-    notification = authProvider.authUser.allowNotifications;
     allowAdding = authProvider.authUser.allowAdding;
+    authUser = authProvider.authUser;
     phoneNode.addListener(() {
       if (phoneNode.hasFocus) {
         setState(() {
@@ -61,6 +60,8 @@ class _ProfileState extends State<Profile> {
   void dispose() {
     nameNode.dispose();
     phoneNode.dispose();
+    nameController.dispose();
+    phoneController.dispose();
     super.dispose();
   }
 
@@ -131,8 +132,9 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
+    print('object');
     var authProvider = Provider.of<Auth>(context);
-    AppUser authUser = authProvider.authUser;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,62 +385,6 @@ class _ProfileState extends State<Profile> {
             thickness: 0.5,
             color: Theme.of(context).colorScheme.secondary,
           ),
-          // ExpansionPanelList(
-          //   elevation: 0,
-          //   expansionCallback: (_, isExpanded) {
-          //     setState(() {
-          //       isNotificationsExpanded = !isNotificationsExpanded;
-          //     });
-          //   },
-          //   children: [
-          //     ExpansionPanel(
-          //       headerBuilder: (context, isExpanded) {
-          //         return const Padding(
-          //           padding: EdgeInsets.all(12.0),
-          //           child: Text(
-          //             'התראות',
-          //             style: TextStyle(fontSize: 16),
-          //           ),
-          //         );
-          //       },
-          //       body: ListView(
-          //         shrinkWrap: true,
-          //         children: [
-          //           SwitchListTile.adaptive(
-          //             value: notification['addedToList'],
-          //             title: const Text('הוספה לרשימה חדשה'),
-          //             activeTrackColor: Colors.green,
-          //             onChanged: (value) {
-          //               setState(() {
-          //                 notification['addedToList'] =
-          //                     !notification['addedToList'];
-          //               });
-          //               authProvider.updateNotifications('addedToList', value);
-          //             },
-          //           ),
-          //           SwitchListTile.adaptive(
-          //             value: notification['itemAdded'],
-          //             title: const Text('הוספת מוצר לרשימה'),
-          //             activeTrackColor: Colors.green,
-          //             onChanged: (value) {
-          //               setState(() {
-          //                 notification['itemAdded'] =
-          //                     !notification['itemAdded'];
-          //               });
-          //               authProvider.updateNotifications('itemAdded', value);
-          //             },
-          //           ),
-          //         ],
-          //       ),
-          //       isExpanded: isNotificationsExpanded,
-          //       canTapOnHeader: true,
-          //     )
-          //   ],
-          // ),
-          // Divider(
-          //   thickness: 0.5,
-          //   color: Theme.of(context).colorScheme.secondary,
-          // ),
           ExpansionPanelList(
             elevation: 0,
             expansionCallback: (_, isExpanded) {
