@@ -12,7 +12,7 @@ import '/providers/lists.dart';
 import '/helpers/avatar.dart';
 
 class ListsScreen extends StatefulWidget {
-   const ListsScreen({Key? key}) : super(key: key);
+  const ListsScreen({Key? key}) : super(key: key);
 
   @override
   State<ListsScreen> createState() => _ListsScreenState();
@@ -163,7 +163,10 @@ class _ListsScreenState extends State<ListsScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withOpacity(_isLoading ? 0.5 : 1),
                   ),
                 ),
               ),

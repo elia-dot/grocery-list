@@ -60,28 +60,24 @@ class Auth with ChangeNotifier {
         throw FBExeption('אימייל כבר בשימוש');
       }
     } catch (e) {
-      print('error: $e');
-      throw e;
+      rethrow;
     }
   }
 
   Future<void> login(String email, String password) async {
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      print(e.code);
       if (e.code == 'user-not-found') {
         throw FBExeption('משתמש לא נמצא');
       } else if (e.code == 'wrong-password') {
         throw FBExeption('סיסמא לא נכונה');
       }
     } catch (e) {
-      print('error: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -136,7 +132,7 @@ class Auth with ChangeNotifier {
           .update({setting: value});
       notifyListeners();
     } catch (e) {
-      print(e);
+      rethrow;
     }
   }
 
@@ -145,7 +141,7 @@ class Auth with ChangeNotifier {
       database.ref('users/${auth.currentUser!.uid}').update({setting: value});
       notifyListeners();
     } catch (e) {
-      print(e);
+      rethrow;
     }
   }
 
@@ -239,7 +235,7 @@ class Auth with ChangeNotifier {
         await database.ref('users/${auth.currentUser!.uid}/requests').get();
     final fetchedReq = jsonEncode(reqRef.value);
     final decodedData = jsonDecode(fetchedReq) as Map<String, dynamic>;
-    var reqId;
+    String reqId = '';
     decodedData.forEach((key, value) {
       if (value['id'] == reqUserId) {
         reqId = key;
@@ -268,7 +264,7 @@ class Auth with ChangeNotifier {
     final fetchedReq = jsonEncode(senderFriends.value);
     final decodedData = jsonDecode(fetchedReq) as Map<String, dynamic>;
 
-    var id;
+    String id = '';
     decodedData.forEach((key, value) {
       if (value['id'] == auth.currentUser!.uid) {
         id = key;
@@ -281,18 +277,16 @@ class Auth with ChangeNotifier {
 
   //remove friend
   Future<void> removeFriend(String id) async {
-    print(id);
     final friendsList =
         await database.ref('users/${auth.currentUser!.uid}/friends').get();
     final fetchedReq = jsonEncode(friendsList.value);
     final decodedData = jsonDecode(fetchedReq) as Map<String, dynamic>;
-    var friendId;
+    String friendId = '';
     decodedData.forEach((key, value) {
       if (value['id'] == id) {
         friendId = key;
       }
     });
-    print(friendId);
     await database
         .ref('users/${auth.currentUser!.uid}/friends/$friendId')
         .remove();
@@ -302,7 +296,7 @@ class Auth with ChangeNotifier {
       final otherfetchedReq = jsonEncode(otherFriendsList.value);
       final othedecodedData =
           jsonDecode(otherfetchedReq) as Map<String, dynamic>;
-      var userId;
+      String userId = '';
       othedecodedData.forEach((key, value) {
         if (value['id'] == auth.currentUser!.uid) {
           userId = key;
@@ -316,7 +310,7 @@ class Auth with ChangeNotifier {
       final otherRequestList = jsonEncode(requestList.value);
       final otherDecodedData =
           jsonDecode(otherRequestList) as Map<String, dynamic>;
-      var requestUserId;
+      String requestUserId = '';
       otherDecodedData.forEach((key, value) {
         if (value['id'] == auth.currentUser!.uid) {
           requestUserId = key;
@@ -331,15 +325,13 @@ class Auth with ChangeNotifier {
     try {
       await auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      print(e.code);
       if (e.code == 'invalid-email') {
         throw FBExeption('נא הכנס אימייל תקין');
       } else if (e.code == 'user-not-found') {
         throw FBExeption('אימייל לא נמצא');
       }
     } catch (e) {
-      print('error: $e');
-      throw e;
+      rethrow;
     }
   }
 }

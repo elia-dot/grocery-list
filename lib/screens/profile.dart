@@ -132,7 +132,6 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
-    print('object');
     var authProvider = Provider.of<Auth>(context);
 
     return SingleChildScrollView(

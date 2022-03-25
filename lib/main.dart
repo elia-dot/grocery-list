@@ -22,7 +22,7 @@ void main() async {
   //     builder: (context) => MyApp(), // Wrap your app
   //   ),
   // );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -104,9 +104,9 @@ class Home {
         stream: _auth.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return HomeScreen();
+            return const HomeScreen();
           } else {
-            return LoginScreen();
+            return const LoginScreen();
           }
         });
   }

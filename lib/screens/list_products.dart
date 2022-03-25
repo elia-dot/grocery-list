@@ -372,7 +372,7 @@ class _ListProductsState extends State<ListProducts> {
                     ? const Center(
                         child: Text('רשימת הקניות ריקה'),
                       )
-                    : Container(
+                    : SizedBox(
                         child: ListView.builder(
                           shrinkWrap: true,
                           itemBuilder: (ctx, i) => Dismissible(

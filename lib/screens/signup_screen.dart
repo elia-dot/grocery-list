@@ -124,7 +124,7 @@ class _SignupScreenState extends State<SignupScreen> {
         emailError = msg.toString();
       });
     } catch (e) {
-      print(e);
+      rethrow;
     }
     setState(() {
       _isLoading = false;
@@ -147,12 +147,12 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         body: Center(
           child: SingleChildScrollView(
-            child: Container(
+            child: SizedBox(
               width: 300,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 100,
                     height: 100,
                     child: CircleAvatar(

@@ -37,8 +37,6 @@ class _AddUserState extends State<AddUser> {
     void filterFriends(setState) {
       List<Friend> users = [];
       for (var friend in friends) {
-        print(friend.name.contains(searchTerm));
-
         if (searchTerm != '' &&
             friend.confirmed &&
             (friend.name.contains(searchTerm) ||
