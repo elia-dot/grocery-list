@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:grocery_list/providers/auth.dart';
 import 'package:grocery_list/widget/add_user.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart';
