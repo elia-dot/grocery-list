@@ -45,7 +45,7 @@ class _ProfileState extends State<Profile> {
     initialName = authProvider.authUser.name;
     initialPhone = authProvider.authUser.phone;
     allowAdding = authProvider.authUser.allowAdding;
-    authUser = authProvider.authUser;
+
     phoneNode.addListener(() {
       if (phoneNode.hasFocus) {
         setState(() {
@@ -133,7 +133,7 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     var authProvider = Provider.of<Auth>(context);
-
+    authUser = authProvider.authUser;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

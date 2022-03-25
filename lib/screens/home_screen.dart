@@ -18,7 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    Provider.of<Auth>(context, listen: false).setAuthUser();
+    final authProvider = Provider.of<Auth>(context, listen: false);
+    authProvider.setAuthUser();
     super.initState();
   }
 

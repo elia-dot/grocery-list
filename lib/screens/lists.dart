@@ -52,8 +52,6 @@ class _ListsScreenState extends State<ListsScreen> {
   @override
   void initState() {
     final listsProvider = Provider.of<Lists>(context, listen: false);
-    final authProvider = Provider.of<Auth>(context, listen: false);
-    authProvider.setAuthUser();
     listsProvider.listsListener();
     super.initState();
   }
