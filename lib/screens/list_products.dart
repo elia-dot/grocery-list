@@ -133,7 +133,7 @@ class _ListProductsState extends State<ListProducts> {
                                     controller: nameController,
                                     focusNode: nameNode,
                                     decoration: const InputDecoration(
-                                      labelText: 'שם:',
+                                      labelText: 'שם המוצר:',
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide: BorderSide(
                                           color: Colors.white,
@@ -372,55 +372,60 @@ class _ListProductsState extends State<ListProducts> {
                     ? const Center(
                         child: Text('רשימת הקניות ריקה'),
                       )
-                    : SizedBox(
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemBuilder: (ctx, i) => Dismissible(
-                            key: Key(list.items['products'][i].id),
-                            onDismissed: (direction) {
-                              listProvider.removeItem(
-                                  list.items['products'][i].id, list.id);
-                            },
-                            background: Container(
-                              color: Colors.red,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.delete,
-                                      color: Colors.black.withOpacity(0.5),
-                                    ),
-                                    Expanded(child: Container()),
-                                    Icon(
-                                      Icons.delete,
-                                      color: Colors.black.withOpacity(0.5),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            child: ListTile(
-                              leading: GestureDetector(
-                                onTap: () {
-                                  listProvider.checkItem(
-                                      list.items['products'][i].id,
-                                      widget.listId,
-                                      !list.items['products'][i].completed);
+                    : SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (int i = 0;
+                                i < list.items['products'].length;
+                                i++)
+                              Dismissible(
+                                key: Key(list.items['products'][i].id),
+                                onDismissed: (direction) {
+                                  listProvider.removeItem(
+                                      list.items['products'][i].id, list.id);
                                 },
-                                child: Icon(
-                                  Icons.check_circle_outline,
-                                  color: list.items['products'][i].completed
-                                      ? Colors.green
-                                      : Colors.black,
+                                background: Container(
+                                  color: Colors.red,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          color: Colors.black.withOpacity(0.5),
+                                        ),
+                                        Expanded(child: Container()),
+                                        Icon(
+                                          Icons.delete,
+                                          color: Colors.black.withOpacity(0.5),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                child: ListTile(
+                                  leading: GestureDetector(
+                                    onTap: () {
+                                      listProvider.checkItem(
+                                          list.items['products'][i].id,
+                                          widget.listId,
+                                          !list.items['products'][i].completed);
+                                    },
+                                    child: Icon(
+                                      Icons.check_circle_outline,
+                                      color: list.items['products'][i].completed
+                                          ? Colors.green
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                  title: Text(list.items['products'][i].name),
+                                  trailing:
+                                      Text(list.items['products'][i].amount),
                                 ),
                               ),
-                              title: Text(list.items['products'][i].name),
-                              trailing: Text(list.items['products'][i].amount),
-                            ),
-                          ),
-                          itemCount: list.items['products'].length,
+                          ],
                         ),
                       )
               ],
